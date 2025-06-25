@@ -316,15 +316,17 @@ namespace DataViewer
                 textBox.Text = Slider.Value.ToString();
             }
             else if (operate == "Reset"){
+
                 if (dataName == "Minimum")
                 {
                     property.SetValue(Slider, 1);
+                    textBox.Text = Slider.Minimum.ToString();
                 }
                 else if (dataName == "Maximum")
                 {
                     property.SetValue(Slider, Math.Max(int.Parse(FrameCount_Posture.Text), (int)Math.Round(int.Parse(FrameCount_FootPressure.Text) * double.Parse(FrameRateRatio.Text))));
+                    textBox.Text = Slider.Maximum.ToString();
                 }
-                textBox.Text = Slider.Value.ToString();
             }
         }
 
@@ -359,7 +361,7 @@ namespace DataViewer
                     using (StreamWriter writer = new StreamWriter(path + "_Trimmed_Posture.csv"))
                     {
                         offset = int.Parse(FrameOffset_Minimum.Text) + int.Parse(FrameOffset_Posture.Text) - 1;
-                        maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text), int.Parse(FrameCount_Posture.Text));
+                        maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text) + int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_Posture.Text));
                         writer.WriteLine(postureDataList[0]);
                         for (int i = offset; i < maximumFrame; i++)
                         {
@@ -393,8 +395,8 @@ namespace DataViewer
                             }
                         }
                     }
-                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "Posture", postureDataList, 5, maximumFrame);
-                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "Posture", postureDataList, 5, maximumFrame);
+                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
+                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
                 }
 
                 if (footPressureDataList.Count > 0)
@@ -402,39 +404,41 @@ namespace DataViewer
                     using (StreamWriter writer = new StreamWriter(path + "_Trimmed_FootPressure.csv"))
                     {
                         offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
-                        maximumFrame = Math.Min((int)Math.Round(int.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)), int.Parse(FrameCount_FootPressure.Text));
+                        maximumFrame = Math.Min((int)Math.Round(double.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text), int.Parse(FrameCount_FootPressure.Text));
                         writer.WriteLine(footPressureDataList[0]);
                         for (int i = offset; i < maximumFrame; i++)
                         {
                             writer.WriteLine(footPressureDataList[i]);
                         }
                     }
-
-                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "FootPressure", footPressureDataList, (int)Math.Round(5 * double.Parse(FrameRateRatio.Text)), maximumFrame);
-                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "FootPressure", footPressureDataList, (int)Math.Round(5 * double.Parse(FrameRateRatio.Text)), maximumFrame);
+                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "FootPressure", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
+                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "FootPressure", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
                 }
             }
         }
 
-        private void ExportAfterEveryTurn(List<int> list, string path, string dataName, List<string> dataList, int margin, int maximum)
+        private void ExportAfterEveryTurn(List<int> list, string path, string dataName, List<string> dataList, int offset, int maximumFrame, double frameRateRatio = 1)
         {
             foreach (int i in list)
             {
+                int minimum = Math.Max(0, Math.Min(maximumFrame, (int)Math.Round((i - 5) * frameRateRatio)));
+                int maximum = Math.Min(maximumFrame, (int)Math.Round((i + 5) * frameRateRatio));
+
                 using (StreamWriter writer = new StreamWriter(path + (list.IndexOf(i) + 1) + "_" + dataName + ".csv"))
                 {
                     writer.WriteLine(dataList[0]);
-                    for (int j = Math.Max(0, i - margin); j < Math.Min(maximum, i + margin); j++)
+                    for (int j = minimum; j < maximum; j++)
                     {
                         if (dataName == "Posture")
                         {
                             for (int k = 0; k < BODYPARTS_POSTURE; k++)
                             {
-                                writer.WriteLine(postureDataList[1 + j * BODYPARTS_POSTURE + k]);
+                                writer.WriteLine(dataList[1 + (offset + j) * BODYPARTS_POSTURE + k]);
                             }
                         }
                         else if (dataName == "FootPressure")
                         {
-                            writer.WriteLine(dataList[1 + j]);
+                            writer.WriteLine(dataList[1 + offset + j]);
                         }
                     }
                 }
