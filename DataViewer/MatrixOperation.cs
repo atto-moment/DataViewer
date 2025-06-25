@@ -91,7 +91,7 @@ namespace DataViewer
             double[][] rotationY = [[Math.Cos(angleY), 0.0, Math.Sin(angleY)], [0.0, 1.0, 0.0], [-Math.Sin(angleY), 0.0, Math.Cos(angleY)]];
             double[][] rotationZ = [[Math.Cos(angleZ), -Math.Sin(angleZ), 0.0], [Math.Sin(angleZ), Math.Cos(angleZ), 0.0], [0.0, 0.0, 1.0]];
 
-            return Product(rotationZ, Product(rotationX, rotationY));
+            return Product(Product(rotationX, rotationY), rotationZ);
         }
     }
 }

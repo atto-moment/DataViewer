@@ -206,7 +206,7 @@ namespace DataViewer
                             if (i != jointNameList.Length - 1)
                             {
                                 motion[0] = [motionData[(i - endCount) * 6], motionData[(i - endCount) * 6 + 1], motionData[(i - endCount) * 6 + 2]];
-                                motion[1] = [motionData[(i - endCount) * 6 + 3], motionData[(i - endCount) * 6 + 4], motionData[(i - endCount) * 5]];
+                                motion[1] = [motionData[(i - endCount) * 6 + 3], motionData[(i - endCount) * 6 + 4], motionData[(i - endCount) * 6 + 5]];
                                 position = MatrixOperation.Sum(offsetList[i], motion[0]);
                             }
 
@@ -220,7 +220,8 @@ namespace DataViewer
                             else
                             {
                                 if (jointNameList[i].Contains("end")) {
-                                    position = MatrixOperation.Sum(MatrixOperation.Product([offsetList[i]], rotationList[i - 1]), [positionList[i - 1]])[0];
+                                    displacement = MatrixOperation.Transpose(MatrixOperation.Product(rotationList[i - 1], MatrixOperation.Transpose([offsetList[i]])));
+                                    position = MatrixOperation.Sum(displacement, [positionList[i - 1]])[0];
                                     nextParentJointName = jointNameList[i].Split(":")[1];
                                     endCount = endCount + 1;
                                 }
