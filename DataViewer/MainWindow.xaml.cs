@@ -1,6 +1,5 @@
 ﻿using HelixToolkit.Wpf;
 using Microsoft.Win32;
-using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 
 namespace DataViewer
@@ -345,90 +343,75 @@ namespace DataViewer
             List<int> rightTurnIndexList = new List<int>();
             int offset;
             int maximumFrame;
-            string dataName = clickedButton.Name.Split("_")[1];
             string path;
 
-            Dictionary<string, string> extensions = new Dictionary<string, string>();
-            extensions.Add("CSV", "Folder|.");
-            extensions.Add("Video", "Video File (*.mp4)|*.mp4");
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Title = "Save files";
-            saveFileDialog.Filter = extensions[dataName];
+            saveFileDialog.Filter = "Folder|.";
             if (saveFileDialog.ShowDialog() == true)
             {
-                if (dataName == "CSV")
+                Directory.CreateDirectory(saveFileDialog.FileName);
+                saveFileDialog.FileName = saveFileDialog.FileName.Replace(".", "");
+                path = saveFileDialog.FileName + "/" + saveFileDialog.SafeFileName;
+
+                if (postureDataList.Count > 0)
                 {
-                    Directory.CreateDirectory(saveFileDialog.FileName);
-                    saveFileDialog.FileName = saveFileDialog.FileName.Replace(".", "");
-                    path = saveFileDialog.FileName + "/" + saveFileDialog.SafeFileName;
-
-                    if (postureDataList.Count > 0)
+                    using (StreamWriter writer = new StreamWriter(path + "_Trimmed_Posture.csv"))
                     {
-                        using (StreamWriter writer = new StreamWriter(path + "_Trimmed_Posture.csv"))
+                        offset = int.Parse(FrameOffset_Minimum.Text) + int.Parse(FrameOffset_Posture.Text) - 1;
+                        maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text), int.Parse(FrameCount_Posture.Text));
+                        writer.WriteLine(postureDataList[0]);
+                        for (int i = offset; i < maximumFrame; i++)
                         {
-                            offset = int.Parse(FrameOffset_Minimum.Text) + int.Parse(FrameOffset_Posture.Text) - 1;
-                            maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text), int.Parse(FrameCount_Posture.Text));
-                            writer.WriteLine(postureDataList[0]);
-                            for (int i = offset; i < maximumFrame; i++)
+                            previousXPosition = xPosition;
+                            xPosition = 0;
+                            for (int j = 0; j < BODYPARTS_POSTURE; j++)
                             {
-                                previousXPosition = xPosition;
-                                xPosition = 0;
-                                for (int j = 0; j < BODYPARTS_POSTURE; j++)
+                                if (j == 33 || j == 43)
                                 {
-                                    if (j == 33 || j == 43)
-                                    {
-                                        xPosition += double.Parse(postureDataList[1 + i * BODYPARTS_POSTURE + j].Split(",")[2]) / 2.0;
-                                    }
-                                    writer.WriteLine(postureDataList[1 + i * BODYPARTS_POSTURE + j]);
+                                    xPosition += double.Parse(postureDataList[1 + i * BODYPARTS_POSTURE + j].Split(",")[2]) / 2.0;
                                 }
+                                writer.WriteLine(postureDataList[1 + i * BODYPARTS_POSTURE + j]);
+                            }
 
-                                if (i == 2) {
-                                    isLeftTurn = xPosition > previousXPosition;
-                                }
-                                else if (i > 2)
+                            if (i == 2)
+                            {
+                                isLeftTurn = xPosition > previousXPosition;
+                            }
+                            else if (i > 2)
+                            {
+                                if (isLeftTurn && xPosition < previousXPosition)
                                 {
-                                    if (isLeftTurn && xPosition < previousXPosition)
-                                    {
-                                        isLeftTurn = !isLeftTurn;
-                                        leftTurnIndexList.Add(i);
-                                    }
-                                    else if (!isLeftTurn && xPosition > previousXPosition) {
-                                        isLeftTurn = !isLeftTurn;
-                                        rightTurnIndexList.Add(i);
-                                    }
+                                    isLeftTurn = !isLeftTurn;
+                                    leftTurnIndexList.Add(i);
+                                }
+                                else if (!isLeftTurn && xPosition > previousXPosition)
+                                {
+                                    isLeftTurn = !isLeftTurn;
+                                    rightTurnIndexList.Add(i);
                                 }
                             }
                         }
-                        ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "Posture", postureDataList, 5, maximumFrame);
-                        ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "Posture", postureDataList, 5, maximumFrame);
                     }
-
-                    if (footPressureDataList.Count > 0)
-                    {
-                        using (StreamWriter writer = new StreamWriter(path + "_Trimmed_FootPressure.csv"))
-                        {
-                            offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
-                            maximumFrame = Math.Min((int)Math.Round(int.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)), int.Parse(FrameCount_FootPressure.Text));
-                            writer.WriteLine(footPressureDataList[0]);
-                            for (int i = offset; i < maximumFrame; i++)
-                            {
-                                writer.WriteLine(footPressureDataList[i]);
-                            }
-                        }
-
-                        ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "FootPressure", footPressureDataList, (int)Math.Round(5 * double.Parse(FrameRateRatio.Text)), maximumFrame);
-                        ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "FootPressure", footPressureDataList, (int)Math.Round(5 * double.Parse(FrameRateRatio.Text)), maximumFrame);
-                    }
+                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "Posture", postureDataList, 5, maximumFrame);
+                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "Posture", postureDataList, 5, maximumFrame);
                 }
-                else if (dataName == "Video")
+
+                if (footPressureDataList.Count > 0)
                 {
-                    // normal   : 60sの動画で413s
-                    if (postureDataList.Count > 0 || footPressureDataList.Count > 0)
+                    using (StreamWriter writer = new StreamWriter(path + "_Trimmed_FootPressure.csv"))
                     {
-                        int minimum = int.Parse(FrameOffset_Minimum.Text);
-                        int maximum = int.Parse(FrameOffset_Maximum.Text);
-                        Task.Run(() => ExportVideo(minimum, maximum, saveFileDialog.FileName));
+                        offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
+                        maximumFrame = Math.Min((int)Math.Round(int.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)), int.Parse(FrameCount_FootPressure.Text));
+                        writer.WriteLine(footPressureDataList[0]);
+                        for (int i = offset; i < maximumFrame; i++)
+                        {
+                            writer.WriteLine(footPressureDataList[i]);
+                        }
                     }
+
+                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "FootPressure", footPressureDataList, (int)Math.Round(5 * double.Parse(FrameRateRatio.Text)), maximumFrame);
+                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "FootPressure", footPressureDataList, (int)Math.Round(5 * double.Parse(FrameRateRatio.Text)), maximumFrame);
                 }
             }
         }
@@ -456,49 +439,6 @@ namespace DataViewer
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Export a video file (not recommend)
-        /// </summary>
-        /// <param name="minimum"></param>
-        /// <param name="maximum"></param>
-        private void ExportVideo(int minimum, int maximum, string fileName)
-        {
-            FrameworkElement element = DataViewer;
-            double width = element.ActualWidth * 0.75;
-            double height = element.ActualHeight * 0.75;
-            FormatConvertedBitmap newFormatedBitmapSource;
-            RenderTargetBitmap renderTargetBitmap = null;
-            VideoWriter writer = new VideoWriter(fileName, FourCC.H264, 60, new OpenCvSharp.Size((int)width, (int)height));
-            for (int i = minimum; i < maximum; i++)
-            {
-                element.Dispatcher.Invoke(() =>
-                {
-                    Slider.Value = i;
-                    element.UpdateLayout();
-                    DrawingVisual visual = new DrawingVisual();
-                    using (DrawingContext context = visual.RenderOpen())
-                    {
-                        context.DrawRectangle(new BitmapCacheBrush(element), null, new System.Windows.Rect(0, 0, width, height));
-                    }
-                    renderTargetBitmap = new RenderTargetBitmap((int)width, (int)height, 96, 96, PixelFormats.Pbgra32);
-                    renderTargetBitmap.Render(visual);
-                    renderTargetBitmap.Freeze();
-
-                });
-
-                newFormatedBitmapSource = new FormatConvertedBitmap();
-                newFormatedBitmapSource.BeginInit();
-                newFormatedBitmapSource.Source = renderTargetBitmap;
-                newFormatedBitmapSource.DestinationFormat = PixelFormats.Bgr24;
-                newFormatedBitmapSource.EndInit();
-
-                using (Mat mat = OpenCvSharp.WpfExtensions.BitmapSourceConverter.ToMat(newFormatedBitmapSource)) {
-                    writer.Write(mat);
-                }
-            }
-            writer.Dispose();
         }
 
         /// <summary>
