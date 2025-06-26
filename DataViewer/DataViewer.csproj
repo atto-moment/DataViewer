@@ -11,6 +11,10 @@
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="image\TurnView.png" />
+    <Resource Include="image\NomalView.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
