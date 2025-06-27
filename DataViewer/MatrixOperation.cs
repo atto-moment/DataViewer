@@ -93,5 +93,14 @@ namespace DataViewer
 
             return Product(Product(rotationX, rotationY), rotationZ);
         }
+
+        public static double[] Division(double[] A, double x) {
+            double[] C = new double[A.Length];
+            for (int i = 0; i < A.Length; i++)
+            {
+                C[i] = A[i] / x;
+            }
+            return C;
+        }
     }
 }

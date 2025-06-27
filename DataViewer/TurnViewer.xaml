@@ -17,6 +17,28 @@
             <RowDefinition Height="1.2*"/>
         </Grid.RowDefinitions>
 
+        <Grid x:Name="Picker" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="1.25*"/>
+                <ColumnDefinition Width="1.25*"/>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <!--Folder Picker-->
+            <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="0">
+                <Label Content="Posture Data" Width="110"/>
+                <Label Content=":"/>
+                <TextBox x:Name="FolderPath" Margin="10,0" Height="30" Width="400" IsEnabled="False"/>
+                <Button Height="30" Width="80" Content="Open" Click="OpenFiles"/>
+            </StackPanel>
+        </Grid>
+
         <Grid x:Name="DataViewer" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
@@ -190,6 +212,61 @@
                     </StackPanel>
                 </Grid>
             </Grid>
+        </Grid>
+
+        <Grid x:Name="Player" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3.5*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <!--Player-->
+            <StackPanel Orientation="Horizontal" Grid.Column="0">
+                <TextBox x:Name="TurnIndex" Margin="20,0,0,0" Height="30" Width="75" Text ="{Binding ElementName=Slider, Path=Value}" TextChanged="NumericTextChanged" IsEnabled="False"/>
+                <Label Content="of" Margin="20,0,0,0"/>
+                <TextBox x:Name="Turns" Margin="20,0,0,0" Height="30" Width="75" Text="{Binding ElementName=Slider, Path=Maximum}" TextChanged="NumericTextChanged" IsEnabled="False"/>
+                <Label Content="turns" Margin="20,0,0,0"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Grid.Column="2">
+                <Label Content="Threshold" Margin="20,0,0,0" Width="75"/>
+                <Label Content=":"/>
+                <Label Content="(Pos.)" Margin="10,0,0,0" Width="50"/>
+                <Label Content="0. " VerticalAlignment="Center"/>
+                <TextBox x:Name="Threshold_Position" Height="30" Width="75" Text ="5" TextChanged="NumericTextChanged"/>
+                <Label Content="(Accel.)" Margin="10,0,0,0" Width="50"/>
+                <Label Content="0. " VerticalAlignment="Center"/>
+                <TextBox x:Name="Threshold_Acceleration" Height="30" Width="75" Text ="01" TextChanged="NumericTextChanged"/>
+                <Label Content="(Press.)" Margin="10,0,0,0" Width="50"/>
+                <TextBox x:Name="Threshold_Pressure" Height="30" Width="75" Text ="500" TextChanged="NumericTextChanged"/>
+
+            </StackPanel>
+
+            <!--Seek Bar-->
+            <Slider x:Name="Slider" Margin="20,10" Width="1880" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="10" Minimum="1" Maximum="1" Value="{Binding IndexOfFrameCount}" ValueChanged="SliderValueChanged" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"/>
+
+        </Grid>
+
+        <Grid x:Name="FrameTrimming" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="7*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row ="1" Grid.Column="0">
+                <Button x:Name="Export_CSV" Height="30" Width="90" Content="Export .csv" Click="Export"/>
+            </StackPanel>
         </Grid>
 
         <Grid x:Name="PageTab" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="4">
