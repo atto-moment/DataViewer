@@ -1,4 +1,5 @@
-﻿using HelixToolkit.Wpf;
+﻿using DataViewer.Class;
+using HelixToolkit.Wpf;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -18,11 +19,6 @@ namespace DataViewer
     /// </summary>
     public partial class Viewer : Page
     {
-        static int DIMENTIONS_POSTURE = 5;
-        static int BODYPARTS_POSTURE = 51;
-        static int DIMENTIONS_FOOTPRESSURE = 51;
-        static int TIME_SPAN = 10;
-
         List<string> postureDataList = new List<string>();
         List<string> footPressureDataList = new List<string>();
 
@@ -63,14 +59,14 @@ namespace DataViewer
                     if (clickedButton == Button_Posture)
                     {
                         postureDataList = FileOperation.ReadCSVFile(filePath, extension);
-                        isCorrectFormat = (postureDataList[0].Split(",").Length == DIMENTIONS_POSTURE) && ((postureDataList.Count - 1) % BODYPARTS_POSTURE == 0);
-                        frameCount = postureDataList.Count / BODYPARTS_POSTURE;
-                        frameRate = (int)Math.Round(1 / (double.Parse(postureDataList[BODYPARTS_POSTURE + 1].Split(",")[0]) - double.Parse(postureDataList[1].Split(",")[0])));
+                        isCorrectFormat = (postureDataList[0].Split(",").Length == Constant.DIMENTIONS_POSTURE) && ((postureDataList.Count - 1) % Constant.BODYPARTS_POSTURE == 0);
+                        frameCount = postureDataList.Count / Constant.BODYPARTS_POSTURE;
+                        frameRate = (int)Math.Round(1 / (double.Parse(postureDataList[Constant.BODYPARTS_POSTURE + 1].Split(",")[0]) - double.Parse(postureDataList[1].Split(",")[0])));
                     }
                     else if (clickedButton == Button_FootPressure)
                     {
                         footPressureDataList = FileOperation.ReadCSVFile(filePath, extension);
-                        isCorrectFormat = footPressureDataList[0].Split(",").Length == DIMENTIONS_FOOTPRESSURE;
+                        isCorrectFormat = footPressureDataList[0].Split(",").Length == Constant.DIMENTIONS_FOOTPRESSURE;
                         frameCount = footPressureDataList.Count;
                         frameRate = (int)Math.Round(1 / (double.Parse(footPressureDataList[2].Split(",")[0]) - double.Parse(footPressureDataList[1].Split(",")[0])));
                     }
@@ -192,8 +188,7 @@ namespace DataViewer
             bool isLeftTurn = false;
             double xPosition = 0;
             double previousXPosition;
-            List<int> leftTurnIndexList = new List<int>();
-            List<int> rightTurnIndexList = new List<int>();
+            List<int> TurnIndexList = new List<int>();
             int offset;
             int maximumFrame;
             string path;
@@ -209,99 +204,42 @@ namespace DataViewer
 
                 if (postureDataList.Count > 0)
                 {
-                    using (StreamWriter writer = new StreamWriter(path + "_Trimmed_Posture.csv"))
-                    {
-                        offset = int.Parse(FrameOffset_Minimum.Text) + int.Parse(FrameOffset_Posture.Text) - 1;
-                        maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text) + int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_Posture.Text));
-                        writer.WriteLine(postureDataList[0]);
-                        for (int i = offset; i < maximumFrame; i++)
-                        {
-                            previousXPosition = xPosition;
-                            xPosition = 0;
-                            for (int j = 0; j < BODYPARTS_POSTURE; j++)
-                            {
-                                if (j == 33 || j == 43)
-                                {
-                                    xPosition += double.Parse(postureDataList[1 + i * BODYPARTS_POSTURE + j].Split(",")[2]) / 2.0;
-                                }
-                                writer.WriteLine(postureDataList[1 + i * BODYPARTS_POSTURE + j]);
-                            }
+                    offset = int.Parse(FrameOffset_Minimum.Text) + int.Parse(FrameOffset_Posture.Text) - 1;
+                    maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text) + int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_Posture.Text));
 
-                            if (i == 2)
+                    for (int i = offset; i < maximumFrame; i++)
+                    {
+                        previousXPosition = xPosition;
+                        xPosition = double.Parse(postureDataList[1 + i * Constant.BODYPARTS_POSTURE + 33].Split(",")[2]) + double.Parse(postureDataList[1 + i * Constant.BODYPARTS_POSTURE + 43].Split(",")[2]) / 2.0;
+
+                        if (i == offset + 2)
+                        {
+                            isLeftTurn = xPosition > previousXPosition;
+                        }
+                        else if (i > offset +  2)
+                        {
+                            if (isLeftTurn && xPosition < previousXPosition)
                             {
-                                isLeftTurn = xPosition > previousXPosition;
+                                isLeftTurn = !isLeftTurn;
+                                TurnIndexList.Add(i);
                             }
-                            else if (i > 2)
+                            else if (!isLeftTurn && xPosition > previousXPosition)
                             {
-                                if (isLeftTurn && xPosition < previousXPosition)
-                                {
-                                    isLeftTurn = !isLeftTurn;
-                                    leftTurnIndexList.Add(i);
-                                }
-                                else if (!isLeftTurn && xPosition > previousXPosition)
-                                {
-                                    isLeftTurn = !isLeftTurn;
-                                    rightTurnIndexList.Add(i);
-                                }
+                                isLeftTurn = !isLeftTurn;
+                                TurnIndexList.Add(i);
                             }
                         }
                     }
-                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
-                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
+                    FileOperation.WriteCSVFile(path + "_Trimmed_Posture.csv", postureDataList, offset, maximumFrame);
+                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
                 }
 
                 if (footPressureDataList.Count > 0)
                 {
-                    using (StreamWriter writer = new StreamWriter(path + "_Trimmed_FootPressure.csv"))
-                    {
-                        offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
-                        maximumFrame = Math.Min((int)Math.Round(double.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text), int.Parse(FrameCount_FootPressure.Text));
-                        writer.WriteLine(footPressureDataList[0]);
-                        for (int i = offset; i < maximumFrame; i++)
-                        {
-                            writer.WriteLine(footPressureDataList[i]);
-                        }
-                    }
-                    ExportAfterEveryTurn(leftTurnIndexList, path + "_LeftTurn_", "FootPressure", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
-                    ExportAfterEveryTurn(rightTurnIndexList, path + "_RightTurn_", "FootPressure", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Extracts data after every turn
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="path"></param>
-        /// <param name="dataName"></param>
-        /// <param name="dataList"></param>
-        /// <param name="offset"></param>
-        /// <param name="maximumFrame"></param>
-        /// <param name="frameRateRatio"></param>
-        private void ExportAfterEveryTurn(List<int> list, string path, string dataName, List<string> dataList, int offset, int maximumFrame, double frameRateRatio = 1)
-        {
-            foreach (int i in list)
-            {
-                int minimum = Math.Max(0, Math.Min(maximumFrame, (int)Math.Round((i - 5) * frameRateRatio)));
-                int maximum = Math.Min(maximumFrame, (int)Math.Round((i + 5) * frameRateRatio));
-
-                using (StreamWriter writer = new StreamWriter(path + (list.IndexOf(i) + 1) + "_" + dataName + ".csv"))
-                {
-                    writer.WriteLine(dataList[0]);
-                    for (int j = minimum; j < maximum; j++)
-                    {
-                        if (dataName == "Posture")
-                        {
-                            for (int k = 0; k < BODYPARTS_POSTURE; k++)
-                            {
-                                writer.WriteLine(dataList[1 + (offset + j) * BODYPARTS_POSTURE + k]);
-                            }
-                        }
-                        else if (dataName == "FootPressure")
-                        {
-                            writer.WriteLine(dataList[1 + offset + j]);
-                        }
-                    }
+                    offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
+                    maximumFrame = Math.Min((int)Math.Round(double.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text), int.Parse(FrameCount_FootPressure.Text));
+                    FileOperation.WriteCSVFile(path + "_Trimmed_FootPressure.csv", footPressureDataList, offset, maximumFrame);
+                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", "FootPressure", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
                 }
             }
         }
@@ -329,9 +267,9 @@ namespace DataViewer
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
                 Point3D point;
                 helixView.Children.Clear();
-                for (int i = 0; i < BODYPARTS_POSTURE; i++)
+                for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
                 {
-                    position_str = postureDataList[1 + (frameOffset_Posture + sliderValue - 1) * BODYPARTS_POSTURE + i].Split(",");
+                    position_str = postureDataList[1 + (frameOffset_Posture + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i].Split(",");
                     position = Array.ConvertAll(position_str, s => double.TryParse(s, out double x) ? x : 0);
                     pointList.Add(new Tuple<string, Point3D>(position_str[1], new Point3D(position[2], position[3], position[4])));
                     meshBuilder.AddSphere(pointList[i].Item2, 0.1);
@@ -471,7 +409,7 @@ namespace DataViewer
                 Stop.IsEnabled = true;
                 while ((int)Slider.Value < (int)Slider.Maximum)
                 {
-                    await Task.Delay(TIME_SPAN);
+                    await Task.Delay(10);
                     Slider.Value += 1;
                     if (Play.IsEnabled)
                     {
@@ -502,12 +440,9 @@ namespace DataViewer
         private void ChangeViewer(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
-            Page page;
-
             if (clickedButton.Name == "TurnView")
             {
-                page = new TurnViewer();
-                NavigationService.Navigate(page);
+                NavigationService.Navigate(Constant.TURN_VIEW);
             }
         }
     }

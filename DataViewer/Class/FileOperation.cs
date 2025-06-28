@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Navigation;
-using System.Windows;
 using System.IO;
 
-namespace DataViewer
+namespace DataViewer.Class
 {
     public struct FileOperation
     {
@@ -167,6 +161,67 @@ namespace DataViewer
                 }
             }
             return list;
+        }
+
+        /// <summary>
+        /// Write a CSV file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="dataList"></param>
+        /// <param name="offset"></param>
+        /// <param name="maximumFrame"></param>
+        /// <param name="frameRateRatio"></param>
+        public static void WriteCSVFile(string path, List<string> dataList, int offset, int maximumFrame)
+        {
+            using (StreamWriter writer = new StreamWriter(path + "_AllTurns_Posture.csv"))
+            {
+                if (offset != 0)
+                {
+                    writer.WriteLine(dataList[0]);
+                }
+                for (int i = offset; i < maximumFrame; i++)
+                {
+                    writer.WriteLine(dataList[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Write CSV files after every turn
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="path"></param>
+        /// <param name="dataName"></param>
+        /// <param name="dataList"></param>
+        /// <param name="offset"></param>
+        /// <param name="maximumFrame"></param>
+        /// <param name="frameRateRatio"></param>
+        public static void WriteCSVFile(List<int> indexList, string path, string dataName, List<string> dataList, int offset, int maximumFrame, double frameRateRatio = 1)
+        {
+            foreach (int i in indexList)
+            {
+                int minimum = Math.Max(0, Math.Min(maximumFrame, (int)Math.Round((i - 5) * frameRateRatio)));
+                int maximum = Math.Min(maximumFrame, (int)Math.Round((i + 5) * frameRateRatio));
+
+                using (StreamWriter writer = new StreamWriter(path + (indexList.IndexOf(i) + 1) + "_" + dataName + ".csv"))
+                {
+                    writer.WriteLine(dataList[0]);
+                    for (int j = minimum; j < maximum; j++)
+                    {
+                        if (dataName == "Posture")
+                        {
+                            for (int k = 0; k < Constant.BODYPARTS_POSTURE; k++)
+                            {
+                                writer.WriteLine(dataList[1 + (offset + j) * Constant.BODYPARTS_POSTURE + k]);
+                            }
+                        }
+                        else if (dataName == "FootPressure")
+                        {
+                            writer.WriteLine(dataList[1 + offset + j]);
+                        }
+                    }
+                }
+            }
         }
     }
 }

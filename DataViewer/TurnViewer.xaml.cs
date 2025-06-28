@@ -1,7 +1,9 @@
-﻿using HelixToolkit.Wpf;
+﻿using DataViewer.Class;
+using HelixToolkit.Wpf;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,10 +20,6 @@ namespace DataViewer
     /// </summary>
     public partial class TurnViewer : Page
     {
-        static int DIMENTIONS_POSTURE = 5;
-        static int BODYPARTS_POSTURE = 51;
-        static int DIMENTIONS_FOOTPRESSURE = 51;
-
         List<string> postureDataList = new List<string>();
         List<string> footPressureDataList = new List<string>();
 
@@ -38,13 +36,14 @@ namespace DataViewer
         private void OpenFiles(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
+            string folderPath;
             CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
             openFileDialog.Title = "Select a folder";
             openFileDialog.IsFolderPicker = true;
 
             if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                string folderPath = openFileDialog.FileName.Replace(".","/");
+                folderPath = openFileDialog.FileName.Replace(".","/");
                 try
                 {
                     bool isCorrectFormat = false;
@@ -58,7 +57,7 @@ namespace DataViewer
                     foreach (string file in files.Where(path => path.EndsWith("Posture.csv") && !path.Contains("Trimmed") && !path.Contains("AllTurns")))
                     {
                         list = FileOperation.ReadCSVFile(file, ".csv");
-                        isCorrectFormat = (list[0].Split(",").Length == DIMENTIONS_POSTURE) && ((list.Count - 1) % BODYPARTS_POSTURE == 0);
+                        isCorrectFormat = (list[0].Split(",").Length == Constant.DIMENTIONS_POSTURE) && ((list.Count - 1) % Constant.BODYPARTS_POSTURE == 0);
                         if (isCorrectFormat) {
                             if(postureDataList.Count == 0)
                             {
@@ -82,7 +81,7 @@ namespace DataViewer
 
                             foreach (KeyValuePair<string,double[]> valuePair in dictionary)
                             {
-                                values = MatrixOperation.Division(valuePair.Value,list.Count / BODYPARTS_POSTURE);
+                                values = MatrixOperation.Division(valuePair.Value,list.Count / Constant.BODYPARTS_POSTURE);
                                 postureDataList.Add(values[0] + "," + valuePair.Key + "," + values[1] + "," + values[2] + "," + values[3]);
                             }
                         }
@@ -91,7 +90,7 @@ namespace DataViewer
                     foreach (string file in files.Where(path => path.EndsWith("FootPressure.csv") && !path.Contains("Trimmed") && !path.Contains("AllTurns")))
                     {
                         list = FileOperation.ReadCSVFile(file, ".csv");
-                        isCorrectFormat = list[0].Split(",").Length == DIMENTIONS_FOOTPRESSURE;
+                        isCorrectFormat = list[0].Split(",").Length == Constant.DIMENTIONS_FOOTPRESSURE;
                         if (isCorrectFormat)
                         {
                             if (footPressureDataList.Count == 0)
@@ -100,7 +99,7 @@ namespace DataViewer
                             }
                             list.RemoveAt(0);
 
-                            values = new double[DIMENTIONS_FOOTPRESSURE];
+                            values = new double[Constant.DIMENTIONS_FOOTPRESSURE];
                             Array.Fill(values, 0);
                             for (int i = 0; i < list.Count(); i++)
                             {
@@ -111,13 +110,14 @@ namespace DataViewer
                             footPressureDataList.Add(string.Join(",", values));
                         }
                     }
+                    FolderPath.Text = folderPath;
                 }
                 catch
                 {
                     FolderPath.Text = "(Loading File Failure)";
                 }
             }
-            Slider.Maximum = Math.Max((postureDataList.Count - 1) / BODYPARTS_POSTURE, footPressureDataList.Count - 1);
+            Slider.Maximum = Math.Max((postureDataList.Count - 1) / Constant.BODYPARTS_POSTURE, footPressureDataList.Count - 1);
         }
 
         /// <summary>
@@ -155,24 +155,12 @@ namespace DataViewer
 
                 if (postureDataList.Count > 0)
                 {
-                    using (StreamWriter writer = new StreamWriter(path + "_AllTurns_Posture.csv"))
-                    {
-                        for (int i = 0; i < postureDataList.Count; i++)
-                        {
-                            writer.WriteLine(postureDataList[i]);
-                        }
-                    }
+                    FileOperation.WriteCSVFile(path + "_AllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
                 }
 
                 if (footPressureDataList.Count > 0)
                 {
-                    using (StreamWriter writer = new StreamWriter(path + "_AllTurns_FootPressure.csv"))
-                    {
-                        for (int i = 0; i < footPressureDataList.Count; i++)
-                        {
-                            writer.WriteLine(footPressureDataList[i]);
-                        }
-                    }
+                    FileOperation.WriteCSVFile(path + "_AllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
                 }
             }
         }
@@ -195,9 +183,9 @@ namespace DataViewer
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
                 Point3D point;
                 helixView.Children.Clear();
-                for (int i = 0; i < BODYPARTS_POSTURE; i++)
+                for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
                 {
-                    position_str = postureDataList[1 + (sliderValue - 1) * BODYPARTS_POSTURE + i].Split(",");
+                    position_str = postureDataList[1 + (sliderValue - 1) * Constant.BODYPARTS_POSTURE + i].Split(",");
                     position = Array.ConvertAll(position_str, s => double.TryParse(s, out double x) ? x : 0);
                     pointList.Add(new Tuple<string, Point3D>(position_str[1], new Point3D(position[2], position[3], position[4])));
                     meshBuilder.AddSphere(pointList[i].Item2, 0.1);
@@ -309,12 +297,10 @@ namespace DataViewer
         private void ChangeViewer(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
-            Page page;
 
             if (clickedButton.Name == "NomalView")
             {
-                page = new Viewer();
-                NavigationService.Navigate(page);
+                NavigationService.Navigate(Constant.NOMAL_VIEW);
             }
         }
     }

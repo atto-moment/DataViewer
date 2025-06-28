@@ -10,6 +10,7 @@ namespace DataViewer
         public MainWindow()
         {
             InitializeComponent();
+            NavigationService.Navigate(DataViewer.Class.Constant.NOMAL_VIEW);
         }
     }
 }

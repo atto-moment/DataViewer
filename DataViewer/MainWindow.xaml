@@ -6,6 +6,5 @@
         xmlns:local="clr-namespace:DataViewer"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Source="Viewer.xaml"
         Title="Data Viewer" Height="1040" Width="1920" Margin="0" ThemeMode="System">
 </NavigationWindow>

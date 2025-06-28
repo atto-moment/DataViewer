@@ -32,7 +32,7 @@
 
             <!--Folder Picker-->
             <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="0">
-                <Label Content="Posture Data" Width="110"/>
+                <Label Content="Data Path" Width="110"/>
                 <Label Content=":"/>
                 <TextBox x:Name="FolderPath" Margin="10,0" Height="30" Width="400" IsEnabled="False"/>
                 <Button Height="30" Width="80" Content="Open" Click="OpenFiles"/>
@@ -281,12 +281,12 @@
 
             <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="0">
                 <Button x:Name="NomalView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
-                    <Image Source="/image/NomalView.png"></Image>
+                    <Image Source="/Image/NomalView.png"></Image>
                 </Button>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="1">
                 <Button x:Name="TurnView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Click="ChangeViewer">
-                    <Image Source="/image/TurnView.png"></Image>
+                    <Image Source="/Image/TurnView.png"></Image>
                 </Button>
             </StackPanel>
         </Grid>
