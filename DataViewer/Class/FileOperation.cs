@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace DataViewer.Class
+namespace DataViewer
 {
     public struct FileOperation
     {
@@ -170,10 +170,10 @@ namespace DataViewer.Class
         /// <param name="dataList"></param>
         /// <param name="offset"></param>
         /// <param name="maximumFrame"></param>
-        /// <param name="frameRateRatio"></param>
+        /// <param name="maximumFrame"></param>
         public static void WriteCSVFile(string path, List<string> dataList, int offset, int maximumFrame)
         {
-            using (StreamWriter writer = new StreamWriter(path + "_AllTurns_Posture.csv"))
+            using (StreamWriter writer = new StreamWriter(path))
             {
                 if (offset != 0)
                 {
@@ -189,7 +189,7 @@ namespace DataViewer.Class
         /// <summary>
         /// Write CSV files after every turn
         /// </summary>
-        /// <param name="list"></param>
+        /// <param name="indexList"></param>
         /// <param name="path"></param>
         /// <param name="dataName"></param>
         /// <param name="dataList"></param>
@@ -203,7 +203,7 @@ namespace DataViewer.Class
                 int minimum = Math.Max(0, Math.Min(maximumFrame, (int)Math.Round((i - 5) * frameRateRatio)));
                 int maximum = Math.Min(maximumFrame, (int)Math.Round((i + 5) * frameRateRatio));
 
-                using (StreamWriter writer = new StreamWriter(path + (indexList.IndexOf(i) + 1) + "_" + dataName + ".csv"))
+                using (StreamWriter writer = new StreamWriter(path + (indexList.IndexOf(i) + 1).ToString("D" + 3) + "_" + dataName + ".csv"))
                 {
                     writer.WriteLine(dataList[0]);
                     for (int j = minimum; j < maximum; j++)

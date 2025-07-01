@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataViewer.Class
+namespace DataViewer
 {
     public struct MatrixOperation
     {

@@ -1,5 +1,4 @@
-﻿using DataViewer.Class;
-using HelixToolkit.Wpf;
+﻿using HelixToolkit.Wpf;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
@@ -118,6 +117,7 @@ namespace DataViewer
                 }
             }
             Slider.Maximum = Math.Max((postureDataList.Count - 1) / Constant.BODYPARTS_POSTURE, footPressureDataList.Count - 1);
+            SliderValueChanged(Slider, new RoutedPropertyChangedEventArgs<double>(1, 1));
         }
 
         /// <summary>
@@ -290,6 +290,23 @@ namespace DataViewer
         }
 
         /// <summary>
+        /// Exclude a specific turn
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExcludeTurn(object sender, RoutedEventArgs e)
+        {
+            if (Slider.Maximum > 1)
+            {
+                postureDataList.RemoveRange(1 + ((int)Slider.Value - 1) * Constant.BODYPARTS_POSTURE, Constant.BODYPARTS_POSTURE);
+                footPressureDataList.RemoveAt((int)Slider.Value);
+
+                Slider.Value = 1;
+                Slider.Maximum = Math.Max((postureDataList.Count - 1) / Constant.BODYPARTS_POSTURE, footPressureDataList.Count - 1);
+            }
+        }
+
+        /// <summary>
         /// Change a viewer
         /// </summary>
         /// <param name="sender"></param>
@@ -301,6 +318,10 @@ namespace DataViewer
             if (clickedButton.Name == "NomalView")
             {
                 NavigationService.Navigate(Constant.NOMAL_VIEW);
+            }
+            if (clickedButton.Name == "AnalysisView")
+            {
+                NavigationService.Navigate(Constant.ANALYSIS_VIEW);
             }
         }
     }

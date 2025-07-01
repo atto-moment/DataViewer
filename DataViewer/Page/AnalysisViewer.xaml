@@ -1,4 +1,4 @@
-﻿<Page x:Class="DataViewer.TurnViewer"
+﻿<Page x:Class="DataViewer.AnalysisViewer"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:DataViewer" xmlns:ht="http://helix-toolkit.org/wpf"
       mc:Ignorable="d" 
       d:DesignHeight="1020" d:DesignWidth="1920"
-      Title="TurnViewer">
+      Title="AnalysisViewer">
 
     <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Height="1020" Width="1920">
         <Grid.RowDefinitions>
@@ -228,12 +228,9 @@
 
             <!--Player-->
             <StackPanel Orientation="Horizontal" Grid.Column="0">
-                <TextBox x:Name="TurnIndex" Margin="20,0,0,0" Height="30" Width="75" Text ="{Binding ElementName=Slider, Path=Value}" TextChanged="NumericTextChanged" IsEnabled="False"/>
-                <Label Content="of" Margin="20,0,0,0"/>
-                <TextBox x:Name="Turns" Margin="20,0,0,0" Height="30" Width="75" Text="{Binding ElementName=Slider, Path=Maximum}" TextChanged="NumericTextChanged" IsEnabled="False"/>
-                <Label Content="turns" Margin="20,0,0,0"/>
+                <RadioButton x:Name="LeftTurn" Margin="20,0,0,0" Content="Left Turn" IsChecked="True" Checked="RadioButtonChecked"/>
+                <RadioButton x:Name="RightTurn" Margin="30,0,0,0" Content="Right Turn" Checked="RadioButtonChecked"/>
             </StackPanel>
-
             <StackPanel Orientation="Horizontal" Grid.Column="2">
                 <Label Content="Threshold" Margin="20,0,0,0" Width="75"/>
                 <Label Content=":"/>
@@ -245,15 +242,11 @@
                 <TextBox x:Name="Threshold_Acceleration" Height="30" Width="75" Text ="01" TextChanged="NumericTextChanged"/>
                 <Label Content="(Press.)" Margin="10,0,0,0" Width="50"/>
                 <TextBox x:Name="Threshold_Pressure" Height="30" Width="75" Text ="500" TextChanged="NumericTextChanged"/>
-
             </StackPanel>
-
-            <!--Seek Bar-->
-            <Slider x:Name="Slider" Margin="20,10" Width="1880" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" TickFrequency="1" SmallChange="1" LargeChange="10" Minimum="1" Maximum="1" Value="{Binding IndexOfFrameCount}" ValueChanged="SliderValueChanged" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"/>
-
         </Grid>
 
-        <Grid x:Name="FrameTrimming" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="3">
+
+        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="1*"/>
@@ -285,8 +278,12 @@
                 </Button>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="1">
-                <Button x:Name="TurnView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Click="ChangeViewer">
+                <Button x:Name="TurnView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
                     <Image Source="/Image/TurnView.png"></Image>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="2">
+                <Button x:Name="AnalysisView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Click="ChangeViewer">
                 </Button>
             </StackPanel>
         </Grid>

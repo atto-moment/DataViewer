@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace DataViewer.Class
+namespace DataViewer
 {
     public struct Constant
     {
@@ -28,5 +28,10 @@ namespace DataViewer.Class
         /// Turn viewer
         /// </summary>
         public static Page TURN_VIEW = new TurnViewer();
+
+        /// <summary>
+        /// Analysis viewer
+        /// </summary>
+        public static Page ANALYSIS_VIEW = new AnalysisViewer();
     }
 }

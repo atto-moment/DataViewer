@@ -1,5 +1,4 @@
-﻿using DataViewer.Class;
-using HelixToolkit.Wpf;
+﻿using HelixToolkit.Wpf;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -91,6 +90,7 @@ namespace DataViewer
             }
             Slider.Maximum = Math.Max(int.Parse(FrameCount_Posture.Text), (int)Math.Round(int.Parse(FrameCount_FootPressure.Text) * double.Parse(FrameRateRatio.Text)));
             FrameOffset_Maximum.Text = Slider.Maximum.ToString();
+            SliderValueChanged(Slider, new RoutedPropertyChangedEventArgs<double>(1, 1));
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace DataViewer
                             }
                         }
                     }
-                    FileOperation.WriteCSVFile(path + "_Trimmed_Posture.csv", postureDataList, offset, maximumFrame);
+                    FileOperation.WriteCSVFile(path + "_Trimmed_Posture.csv", postureDataList, offset * Constant.BODYPARTS_POSTURE, (maximumFrame - 1) * Constant.BODYPARTS_POSTURE);
                     FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
                 }
 
@@ -443,6 +443,10 @@ namespace DataViewer
             if (clickedButton.Name == "TurnView")
             {
                 NavigationService.Navigate(Constant.TURN_VIEW);
+            }
+            if (clickedButton.Name == "AnalysisView")
+            {
+                NavigationService.Navigate(Constant.ANALYSIS_VIEW);
             }
         }
     }
