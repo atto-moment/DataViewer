@@ -12,6 +12,7 @@
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Image\AnalysisView.png" />
     <Resource Include="Image\TurnView.png" />
     <Resource Include="Image\NomalView.png" />
   </ItemGroup>

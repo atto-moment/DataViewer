@@ -294,6 +294,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="2">
                 <Button x:Name="AnalysisView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
+                    <Image Source="/Image/AnalysisView.png"></Image>
                 </Button>
             </StackPanel>
         </Grid>
