@@ -176,7 +176,7 @@ namespace DataViewer
 
             if (sliderValue < postureDataList.Count)
             {
-                double feetXPosition = 0;
+                double feetXPosition;
                 double[] position;
                 string[] position_str;
                 MeshBuilder meshBuilder = new MeshBuilder();
@@ -190,11 +190,7 @@ namespace DataViewer
                     pointList.Add(new Tuple<string, Point3D>(position_str[1], new Point3D(position[2], position[3], position[4])));
                     meshBuilder.AddSphere(pointList[i].Item2, 0.1);
 
-                    if (i == 33 || i == 43)
-                    {
-                        feetXPosition += position[2] / 2.0;
-                    }
-                    if (i != 0)
+                    if (pointList[i].Item1 != "pelvis")
                     {
                         if (pointList[i - 1].Item1.Contains("end:"))
                         {
@@ -208,6 +204,7 @@ namespace DataViewer
                     }
                 }
 
+                feetXPosition = (pointList[33].Item2.X + pointList[43].Item2.X) / 2.0;
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");

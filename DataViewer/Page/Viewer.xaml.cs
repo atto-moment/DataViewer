@@ -260,7 +260,7 @@ namespace DataViewer
 
             if (sliderValue + frameOffset_Posture < frameCount_Posture)
             {
-                double feetXPosition = 0;
+                double feetXPosition;
                 double[] position;
                 string[] position_str;
                 MeshBuilder meshBuilder = new MeshBuilder();
@@ -274,11 +274,7 @@ namespace DataViewer
                     pointList.Add(new Tuple<string, Point3D>(position_str[1], new Point3D(position[2], position[3], position[4])));
                     meshBuilder.AddSphere(pointList[i].Item2, 0.1);
 
-                    if (i == 33 || i == 43)
-                    {
-                        feetXPosition += position[2] / 2.0;
-                    }
-                    if (i != 0)
+                    if (pointList[i].Item1 != "pelvis")
                     {
                         if (pointList[i - 1].Item1.Contains("end:"))
                         {
@@ -292,12 +288,54 @@ namespace DataViewer
                     }
                 }
 
+                feetXPosition = (pointList[33].Item2.X + pointList[43].Item2.X) / 2.0;
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");
 
                 helixView.Children.Add(new DefaultLights());
-                helixView.Children.Add(new GridLinesVisual3D());
+                helixView.Children.Add(new GridLinesVisual3D()
+                {
+                    MajorDistance = 5.0,
+                    MinorDistance = 0.5,
+                    Thickness = 0.01,
+                });
+                helixView.Children.Add(new BillboardTextVisual3D
+                {
+                    Position = new Point3D(pointList[20].Item2.X, pointList[20].Item2.Y, pointList[20].Item2.Z + 2),
+                    Text = "thorax\n" + Angle(pointList[2].Item2, pointList[0].Item2).ToString("F1") + " °",
+                    FontSize = 20,
+                    Foreground = Brushes.Black,
+                    Background = Brushes.White,
+                    BorderBrush = Brushes.Black
+                });
+                helixView.Children.Add(new BillboardTextVisual3D
+                {
+                    Position = new Point3D(pointList[32].Item2.X - 2.5, pointList[32].Item2.Y, pointList[32].Item2.Z),
+                    Text = "l_shank\n" + Angle(pointList[32].Item2, pointList[33].Item2).ToString("F1") + " °",
+                    FontSize = 20,
+                    Foreground = Brushes.White,
+                    Background = Brushes.Red,
+                    BorderBrush = Brushes.Black
+                });
+                helixView.Children.Add(new BillboardTextVisual3D
+                {
+                    Position = new Point3D(pointList[42].Item2.X + 2.5, pointList[42].Item2.Y, pointList[42].Item2.Z),
+                    Text = "r_shank\n" + Angle(pointList[42].Item2, pointList[43].Item2).ToString("F1") + " °",
+                    FontSize = 20,
+                    Foreground = Brushes.White,
+                    Background = Brushes.Blue,
+                    BorderBrush = Brushes.Black
+                });
+                helixView.Children.Add(new BillboardTextVisual3D
+                {
+                    Position = new Point3D(feetXPosition, pointList[43].Item2.Y, pointList[43].Item2.Z - 2),
+                    Text = "shank_diff\n" + (Angle(pointList[32].Item2, pointList[33].Item2) - Angle(pointList[42].Item2, pointList[43].Item2)).ToString("F1") + " °",
+                    FontSize = 20,
+                    Foreground = Brushes.Black,
+                    Background = Brushes.White,
+                    BorderBrush = Brushes.Black
+                });
                 helixView.Children.Add(new ModelVisual3D
                 {
                     Content = new GeometryModel3D(
@@ -355,6 +393,25 @@ namespace DataViewer
             }
         }
 
+        private double Angle (Point3D p1, Point3D p2)
+        {
+            double[] A = [p2.X, p2.Z];
+            double[] B = [p1.X, p2.Z];
+            double[] C = [p1.X, p1.Z];
+
+            // 膝：e,f, 足: a, b，地面: c, d, 
+
+            // e = p1.X, f = p1.Y
+            // a = p2.X, b = p2.Y
+            // c = p2.X, d = p1.Y
+            double x = (B[0] - A[0]) * (C[0] - A[0]) + (B[1] - A[1]) * (C[1] - A[1]);
+            double y = Math.Sqrt(Math.Pow(B[0] - A[0], 2) + Math.Pow(B[1] - A[1], 2)) * Math.Sqrt(Math.Pow(C[0] - A[0], 2) + Math.Pow(C[1] - A[1], 2));
+
+            double a = x / y;
+            a = a * 180 / Math.PI;
+            return a;
+        }
+
         /// <summary>
         /// Change a background color of each gauge
         /// </summary>
@@ -409,7 +466,7 @@ namespace DataViewer
                 Stop.IsEnabled = true;
                 while ((int)Slider.Value < (int)Slider.Maximum)
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(5);
                     Slider.Value += 1;
                     if (Play.IsEnabled)
                     {
