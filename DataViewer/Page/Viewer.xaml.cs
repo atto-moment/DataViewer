@@ -18,8 +18,8 @@ namespace DataViewer
     /// </summary>
     public partial class Viewer : Page
     {
-        List<string> postureDataList = new List<string>();
-        List<string> footPressureDataList = new List<string>();
+        List<Tuple<double, string, double[]>> postureDataList = new List<Tuple<double, string, double[]>>();
+        List<double[]> footPressureDataList = new List<double[]>();
 
         public Viewer()
         {
@@ -57,17 +57,17 @@ namespace DataViewer
                     string extension = System.IO.Path.GetExtension(openFileDialog.FileName);
                     if (clickedButton == Button_Posture)
                     {
-                        postureDataList = FileOperation.ReadCSVFile(filePath, extension);
-                        isCorrectFormat = (postureDataList[0].Split(",").Length == Constant.DIMENTIONS_POSTURE) && ((postureDataList.Count - 1) % Constant.BODYPARTS_POSTURE == 0);
+                        postureDataList = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(filePath, extension);
+                        isCorrectFormat = (postureDataList[0].Item3.Length == Constant.DIMENTIONS_POSTURE - 2) && (postureDataList.Count % Constant.BODYPARTS_POSTURE == 0);
                         frameCount = postureDataList.Count / Constant.BODYPARTS_POSTURE;
-                        frameRate = (int)Math.Round(1 / (double.Parse(postureDataList[Constant.BODYPARTS_POSTURE + 1].Split(",")[0]) - double.Parse(postureDataList[1].Split(",")[0])));
+                        frameRate = (int)Math.Round(1 / (postureDataList[Constant.BODYPARTS_POSTURE].Item1 - postureDataList[0].Item1));
                     }
                     else if (clickedButton == Button_FootPressure)
                     {
-                        footPressureDataList = FileOperation.ReadCSVFile(filePath, extension);
-                        isCorrectFormat = footPressureDataList[0].Split(",").Length == Constant.DIMENTIONS_FOOTPRESSURE;
+                        footPressureDataList = (List<double[]>)FileOperation.ReadAllFrames(filePath, extension);
+                        isCorrectFormat = footPressureDataList[0].Length == Constant.DIMENTIONS_FOOTPRESSURE;
                         frameCount = footPressureDataList.Count;
-                        frameRate = (int)Math.Round(1 / (double.Parse(footPressureDataList[2].Split(",")[0]) - double.Parse(footPressureDataList[1].Split(",")[0])));
+                        frameRate = (int)Math.Round(1 / (footPressureDataList[1][0] - footPressureDataList[0][0]));
                     }
 
                     if (isCorrectFormat)
@@ -210,8 +210,7 @@ namespace DataViewer
                     for (int i = offset; i < maximumFrame; i++)
                     {
                         previousXPosition = xPosition;
-                        xPosition = double.Parse(postureDataList[1 + i * Constant.BODYPARTS_POSTURE + 33].Split(",")[2]) + double.Parse(postureDataList[1 + i * Constant.BODYPARTS_POSTURE + 43].Split(",")[2]) / 2.0;
-
+                        xPosition = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0] + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
                         if (i == offset + 2)
                         {
                             isLeftTurn = xPosition > previousXPosition;
@@ -230,8 +229,9 @@ namespace DataViewer
                             }
                         }
                     }
+
                     FileOperation.WriteCSVFile(path + "_Trimmed_Posture.csv", postureDataList, offset * Constant.BODYPARTS_POSTURE, (maximumFrame - 1) * Constant.BODYPARTS_POSTURE);
-                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", "Posture", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
+                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
                 }
 
                 if (footPressureDataList.Count > 0)
@@ -239,7 +239,7 @@ namespace DataViewer
                     offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
                     maximumFrame = Math.Min((int)Math.Round(double.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text), int.Parse(FrameCount_FootPressure.Text));
                     FileOperation.WriteCSVFile(path + "_Trimmed_FootPressure.csv", footPressureDataList, offset, maximumFrame);
-                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", "FootPressure", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
+                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
                 }
             }
         }
@@ -260,39 +260,16 @@ namespace DataViewer
 
             if (sliderValue + frameOffset_Posture < frameCount_Posture)
             {
-                double feetXPosition;
-                double[] position;
-                string[] position_str;
-                MeshBuilder meshBuilder = new MeshBuilder();
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
-                Point3D point;
-                helixView.Children.Clear();
-                for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
-                {
-                    position_str = postureDataList[1 + (frameOffset_Posture + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i].Split(",");
-                    position = Array.ConvertAll(position_str, s => double.TryParse(s, out double x) ? x : 0);
-                    pointList.Add(new Tuple<string, Point3D>(position_str[1], new Point3D(position[2], position[3], position[4])));
-                    meshBuilder.AddSphere(pointList[i].Item2, 0.1);
+                MeshBuilder meshBuilder = new MeshBuilder();
+                DataDisplay.CreateMeshBuilder(postureDataList, frameOffset_Posture, sliderValue, out pointList, out meshBuilder);
 
-                    if (pointList[i].Item1 != "pelvis")
-                    {
-                        if (pointList[i - 1].Item1.Contains("end:"))
-                        {
-                            point = pointList.Find((p) => p.Item1.Contains(pointList[i - 1].Item1.Split(":")[1])).Item2;
-                        }
-                        else
-                        {
-                            point = pointList[i - 1].Item2;
-                        }
-                        meshBuilder.AddCylinder(point, pointList[i].Item2, 0.05);
-                    }
-                }
-
-                feetXPosition = (pointList[33].Item2.X + pointList[43].Item2.X) / 2.0;
+                double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;                
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");
 
+                helixView.Children.Clear();
                 helixView.Children.Add(new DefaultLights());
                 helixView.Children.Add(new GridLinesVisual3D()
                 {
@@ -300,42 +277,13 @@ namespace DataViewer
                     MinorDistance = 0.5,
                     Thickness = 0.01,
                 });
-                helixView.Children.Add(new BillboardTextVisual3D
-                {
-                    Position = new Point3D(pointList[20].Item2.X, pointList[20].Item2.Y, pointList[20].Item2.Z + 2),
-                    Text = "thorax\n" + Angle(pointList[2].Item2, pointList[0].Item2).ToString("F1") + " °",
-                    FontSize = 20,
-                    Foreground = Brushes.Black,
-                    Background = Brushes.White,
-                    BorderBrush = Brushes.Black
-                });
-                helixView.Children.Add(new BillboardTextVisual3D
-                {
-                    Position = new Point3D(pointList[32].Item2.X - 2.5, pointList[32].Item2.Y, pointList[32].Item2.Z),
-                    Text = "l_shank\n" + Angle(pointList[32].Item2, pointList[33].Item2).ToString("F1") + " °",
-                    FontSize = 20,
-                    Foreground = Brushes.White,
-                    Background = Brushes.Red,
-                    BorderBrush = Brushes.Black
-                });
-                helixView.Children.Add(new BillboardTextVisual3D
-                {
-                    Position = new Point3D(pointList[42].Item2.X + 2.5, pointList[42].Item2.Y, pointList[42].Item2.Z),
-                    Text = "r_shank\n" + Angle(pointList[42].Item2, pointList[43].Item2).ToString("F1") + " °",
-                    FontSize = 20,
-                    Foreground = Brushes.White,
-                    Background = Brushes.Blue,
-                    BorderBrush = Brushes.Black
-                });
-                helixView.Children.Add(new BillboardTextVisual3D
-                {
-                    Position = new Point3D(feetXPosition, pointList[43].Item2.Y, pointList[43].Item2.Z - 2),
-                    Text = "shank_diff\n" + (Angle(pointList[32].Item2, pointList[33].Item2) - Angle(pointList[42].Item2, pointList[43].Item2)).ToString("F1") + " °",
-                    FontSize = 20,
-                    Foreground = Brushes.Black,
-                    Background = Brushes.White,
-                    BorderBrush = Brushes.Black
-                });
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, 2.5], Brushes.White));
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
+                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
+                    [0, 0, -2.5]));
                 helixView.Children.Add(new ModelVisual3D
                 {
                     Content = new GeometryModel3D(
@@ -348,8 +296,7 @@ namespace DataViewer
             {
                 byte colorValue;
                 string[] feets = ["Left", "Right"];
-                string[] pressureValues_str = footPressureDataList[correctedSliderValue + frameOffset_FootPressure].Split(",");
-                double[] pressureValue = Array.ConvertAll(pressureValues_str, s => double.TryParse(s, out double x) ? x : 0);
+                double[] pressureValue = footPressureDataList[correctedSliderValue + frameOffset_FootPressure];
                 System.Windows.Shapes.Path path;
                 ProgressBar progressBar;
                 for (int i = 0; i < 2; i++)
@@ -391,25 +338,6 @@ namespace DataViewer
             {
                 Play.IsEnabled = true;
             }
-        }
-
-        private double Angle (Point3D p1, Point3D p2)
-        {
-            double[] A = [p2.X, p2.Z];
-            double[] B = [p1.X, p2.Z];
-            double[] C = [p1.X, p1.Z];
-
-            // 膝：e,f, 足: a, b，地面: c, d, 
-
-            // e = p1.X, f = p1.Y
-            // a = p2.X, b = p2.Y
-            // c = p2.X, d = p1.Y
-            double x = (B[0] - A[0]) * (C[0] - A[0]) + (B[1] - A[1]) * (C[1] - A[1]);
-            double y = Math.Sqrt(Math.Pow(B[0] - A[0], 2) + Math.Pow(B[1] - A[1], 2)) * Math.Sqrt(Math.Pow(C[0] - A[0], 2) + Math.Pow(C[1] - A[1], 2));
-
-            double a = x / y;
-            a = a * 180 / Math.PI;
-            return a;
         }
 
         /// <summary>

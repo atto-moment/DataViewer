@@ -18,8 +18,8 @@ namespace DataViewer
     /// </summary>
     public partial class AnalysisViewer : Page
     {
-        List<string> postureDataList = new List<string>();
-        List<string> footPressureDataList = new List<string>();
+        List<Tuple<double, string, double[]>> postureDataList = new List<Tuple<double, string, double[]>>();
+        List<double[]> footPressureDataList = new List<double[]>();
         bool isReverse = false;
 
         public AnalysisViewer()
@@ -60,10 +60,6 @@ namespace DataViewer
                         isCorrectFormat = (list[0].Split(",").Length == Constant.DIMENTIONS_POSTURE) && ((list.Count - 1) % Constant.BODYPARTS_POSTURE == 0);
                         if (isCorrectFormat)
                         {
-                            if (postureDataList.Count == 0)
-                            {
-                                postureDataList.Add(list[0]);
-                            }
                             list.RemoveAt(0);
 
                             dictionaryEven = new Dictionary<string, double[]>();
@@ -104,15 +100,15 @@ namespace DataViewer
                             foreach (KeyValuePair<string, double[]> valuePair in dictionaryOdd)
                             {
                                 values = MatrixOperation.Division(valuePair.Value, turnCount % 2 == 0 ? turnCount : turnCount + 1);
-                                postureDataList.Add(values[0] + "," + valuePair.Key + "," + values[1] + "," + values[2] + "," + values[3]);
+                                postureDataList.Add(new Tuple<double, string, double[]>(values[0], valuePair.Key, [values[1], values[2], values[3]]));
                             }
                             foreach (KeyValuePair<string, double[]> valuePair in dictionaryEven)
                             {
                                 values = MatrixOperation.Division(valuePair.Value, turnCount);
-                                postureDataList.Add(values[0] + "," + valuePair.Key + "," + values[1] + "," + values[2] + "," + values[3]);
+                                postureDataList.Add(new Tuple<double, string, double[]>(values[0], valuePair.Key, [values[1], values[2], values[3]]));
                             }
 
-                            if (double.Parse(postureDataList[1].Split(",")[2]) < double.Parse(postureDataList[1 + Constant.BODYPARTS_POSTURE].Split(",")[2]))
+                            if (postureDataList[0].Item3[0] < postureDataList[Constant.BODYPARTS_POSTURE].Item3[0])
                             {
                                 isReverse = true;
                             }
@@ -125,10 +121,6 @@ namespace DataViewer
                         isCorrectFormat = list[0].Split(",").Length == Constant.DIMENTIONS_FOOTPRESSURE;
                         if (isCorrectFormat)
                         {
-                            if (footPressureDataList.Count == 0)
-                            {
-                                footPressureDataList.Add(list[0]);
-                            }
                             list.RemoveAt(0);
 
                             valuesEven = new double[Constant.DIMENTIONS_FOOTPRESSURE];
@@ -151,9 +143,9 @@ namespace DataViewer
                             turnCount = list.Count / 2;
 
                             valuesOdd = MatrixOperation.Division(valuesOdd, turnCount % 2 == 0 ? turnCount : turnCount + 1);
-                            footPressureDataList.Add(string.Join(",", valuesOdd));
+                            footPressureDataList.Add(valuesOdd);
                             valuesEven = MatrixOperation.Division(valuesEven, turnCount);
-                            footPressureDataList.Add(string.Join(",", valuesEven));
+                            footPressureDataList.Add(valuesEven);
                         }
                     }
                     FolderPath.Text = folderPath;
@@ -218,44 +210,30 @@ namespace DataViewer
 
             if (postureDataList.Count / Constant.BODYPARTS_POSTURE > 1)
             {
-                double feetXPosition = 0;
-                double[] position;
-                string[] position_str;
                 MeshBuilder meshBuilder = new MeshBuilder();
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
-                Point3D point;
-                helixView.Children.Clear();
-                for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
-                {
-                    position_str = postureDataList[1 + Convert.ToInt32(isLeftTurn == isReverse) * Constant.BODYPARTS_POSTURE + i].Split(",");
-                    position = Array.ConvertAll(position_str, s => double.TryParse(s, out double x) ? x : 0);
-                    pointList.Add(new Tuple<string, Point3D>(position_str[1], new Point3D(position[2], position[3], position[4])));
-                    meshBuilder.AddSphere(pointList[i].Item2, 0.1);
-
-                    if (i == 33 || i == 43)
-                    {
-                        feetXPosition += position[2] / 2.0;
-                    }
-                    if (i != 0)
-                    {
-                        if (pointList[i - 1].Item1.Contains("end:"))
-                        {
-                            point = pointList.Find((p) => p.Item1.Contains(pointList[i - 1].Item1.Split(":")[1])).Item2;
-                        }
-                        else
-                        {
-                            point = pointList[i - 1].Item2;
-                        }
-                        meshBuilder.AddCylinder(point, pointList[i].Item2, 0.05);
-                    }
-                }
+                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isLeftTurn == isReverse), out pointList, out meshBuilder);
+                double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
 
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");
 
+                helixView.Children.Clear();
                 helixView.Children.Add(new DefaultLights());
-                helixView.Children.Add(new GridLinesVisual3D());
+                helixView.Children.Add(new GridLinesVisual3D()
+                {
+                    MajorDistance = 5.0,
+                    MinorDistance = 0.5,
+                    Thickness = 0.01,
+                });
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, 2.5], Brushes.White));
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
+                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
+                    [0, 0, -2.5]));
                 helixView.Children.Add(new ModelVisual3D
                 {
                     Content = new GeometryModel3D(
@@ -268,8 +246,7 @@ namespace DataViewer
             {
                 byte colorValue;
                 string[] feets = ["Left", "Right"];
-                string[] pressureValues_str = footPressureDataList[1 + Convert.ToInt32(isLeftTurn == isReverse)].Split(",");
-                double[] pressureValue = Array.ConvertAll(pressureValues_str, s => double.TryParse(s, out double x) ? x : 0);
+                double[] pressureValue = footPressureDataList[Convert.ToInt32(isLeftTurn == isReverse)];
                 System.Windows.Shapes.Path path;
                 ProgressBar progressBar;
                 for (int i = 0; i < 2; i++)
