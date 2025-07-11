@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using System.Windows.Shapes;
 
 namespace DataViewer
 {
@@ -312,20 +313,29 @@ namespace DataViewer
                 string[] feets = ["Left", "Right"];
                 double[] pressureValue = footPressureDataList[correctedSliderValue + frameOffset_FootPressure];
                 System.Windows.Shapes.Path path;
+                Label label;
+                Ellipse ellipse;
                 ProgressBar progressBar;
                 for (int i = 0; i < 2; i++)
                 {
                     for (int j = 0; j < 16; j++)
                     {
-                        colorValue = (byte)(255 - Math.Min(255, 25.5 * (int)pressureValue[1 + i * 26 + j]));
+                        colorValue = (byte)(255 - Math.Min(255, 25.5 * (int)pressureValue[1 + i * 25 + j]));
                         path = FindName($"{feets[i]}_{j + 1}") as System.Windows.Shapes.Path;
                         path.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(colorValue, colorValue, colorValue));
+
+                        label = FindName($"{feets[i]}_{j + 1}_Label") as Label;
+                        label.Content = pressureValue[1 + i * 25 + j];
+                        label.Foreground = new SolidColorBrush(colorValue > 128 ? Colors.Black : Colors.White);
                     }
                     progressBar = FindName($"{feets[i]}_Acceleration") as ProgressBar;
                     progressBar.Value = Math.Max(pressureValue[18 + i * 25], 0);
 
                     progressBar = FindName($"{feets[i]}_Pressure") as ProgressBar;
                     progressBar.Value = pressureValue[23 + i * 25];
+
+                    ellipse = FindName($"{feets[i]}_COP") as Ellipse;
+                    ellipse.Margin = new Thickness((i == 0 ? -1 : 1) * (45 - pressureValue[24 + i * 25] * 250), 75 - pressureValue[25 + i * 25] * 1000,0,0);
 
                 }
                 ChangeBackgroundColor("Acceleration");

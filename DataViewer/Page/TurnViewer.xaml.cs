@@ -148,14 +148,19 @@ namespace DataViewer
                 string[] feets = ["Left", "Right"];
                 double[] pressureValue = footPressureDataList[sliderValue - 1];
                 System.Windows.Shapes.Path path;
+                Label label;
                 ProgressBar progressBar;
                 for (int i = 0; i < 2; i++)
                 {
                     for (int j = 0; j < 16; j++)
                     {
-                        colorValue = (byte)(255 - Math.Min(255, 25.5 * (int)pressureValue[1 + i * 26 + j]));
+                        colorValue = (byte)(255 - Math.Min(255, 25.5 * (int)pressureValue[1 + i * 25 + j]));
                         path = FindName($"{feets[i]}_{j + 1}") as System.Windows.Shapes.Path;
                         path.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(colorValue, colorValue, colorValue));
+
+                        label = FindName($"{feets[i]}_{j + 1}_Label") as Label;
+                        label.Content = pressureValue[1 + i * 25 + j];
+                        label.Foreground = new SolidColorBrush(colorValue > 128 ? Colors.Black : Colors.White);
                     }
                     progressBar = FindName($"{feets[i]}_Acceleration") as ProgressBar;
                     progressBar.Value = Math.Max(pressureValue[18 + i * 25], 0);
