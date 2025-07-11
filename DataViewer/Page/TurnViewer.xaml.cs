@@ -44,62 +44,8 @@ namespace DataViewer
                 folderPath = openFileDialog.FileName.Replace(".","/");
                 try
                 {
-                    bool isCorrectFormat = false;
-                    Dictionary<string, double[]> dictionary;
-                    List<string> list;
                     string[] files = Directory.GetFiles(folderPath);
-                    string[] values_str;
-                    double[] values;
-
-                    Array.Sort(files);
-                    foreach (string file in files.Where(path => path.EndsWith("Posture.csv") && !path.Contains("Trimmed") && !path.Contains("AllTurns")))
-                    {
-                        list = FileOperation.ReadCSVFile(file, ".csv");
-                        isCorrectFormat = (list[0].Split(",").Length == Constant.DIMENTIONS_POSTURE) && ((list.Count - 1) % Constant.BODYPARTS_POSTURE == 0);
-                        if (isCorrectFormat) {
-                            list.RemoveAt(0);
-
-                            dictionary = new Dictionary<string, double[]>();
-                            for (int i = 0; i < list.Count(); i++)
-                            {
-                                values_str = list[i].Split(",");
-                                values = [double.Parse(values_str[0]), double.Parse(values_str[2]), double.Parse(values_str[3]), double.Parse(values_str[4])];
-                                if (dictionary.ContainsKey(values_str[1])) {
-                                    dictionary[values_str[1]] = MatrixOperation.Sum(dictionary[values_str[1]], values);
-                                }
-                                else
-                                {
-                                    dictionary.Add(values_str[1], values);
-                                }
-                            }
-
-                            foreach (KeyValuePair<string,double[]> valuePair in dictionary)
-                            {
-                                values = MatrixOperation.Division(valuePair.Value,list.Count / Constant.BODYPARTS_POSTURE);
-                                postureDataList.Add(new Tuple<double, string, double[]>(values[0], valuePair.Key, [values[1], values[2], values[3]]));
-                            }
-                        }
-                    }
-
-                    foreach (string file in files.Where(path => path.EndsWith("FootPressure.csv") && !path.Contains("Trimmed") && !path.Contains("AllTurns")))
-                    {
-                        list = FileOperation.ReadCSVFile(file, ".csv");
-                        isCorrectFormat = list[0].Split(",").Length == Constant.DIMENTIONS_FOOTPRESSURE;
-                        if (isCorrectFormat)
-                        {
-                            list.RemoveAt(0);
-
-                            values = new double[Constant.DIMENTIONS_FOOTPRESSURE];
-                            Array.Fill(values, 0);
-                            for (int i = 0; i < list.Count(); i++)
-                            {
-                                values_str = list[i].Split(",");
-                                values = MatrixOperation.Sum(values, Array.ConvertAll(values_str, s => double.TryParse(s, out double x) ? x : 0));
-                            }
-                            values = MatrixOperation.Division(values, list.Count);
-                            footPressureDataList.Add(values);
-                        }
-                    }
+                    FileOperation.GetMeanValues(files.Where(path => !path.Contains("Trimmed") && !path.Contains("AllTurns")).ToArray(), out postureDataList, out footPressureDataList);
                     FolderPath.Text = folderPath;
                 }
                 catch
@@ -118,11 +64,8 @@ namespace DataViewer
         /// <param name="e"></param>
         private void NumericTextChanged(object sender, TextChangedEventArgs e)
         {
-            TextBox textbox = sender as TextBox;
-            if (!Regex.IsMatch(textbox.Text, @"^\d*$"))
-            {
-                textbox.Text = "0";
-            }
+            TextBox textBox = sender as TextBox;
+            textBox.Text = Regex.IsMatch(textBox.Text, @"^\d*$") ? textBox.Text : "0";
         }
 
         /// <summary>
@@ -177,7 +120,7 @@ namespace DataViewer
                 ChangeBackgroundColor("Position");
 
                 helixView.Children.Clear();
-                helixView.Children.Add(new DefaultLights());
+                helixView.Children.Add(new ModelVisual3D { Content = new AmbientLight { Color = Colors.White } });
                 helixView.Children.Add(new GridLinesVisual3D()
                 {
                     MajorDistance = 5.0,
@@ -227,42 +170,17 @@ namespace DataViewer
         }
 
         /// <summary>
-        /// Change a background color of each gauge
+        /// Change the background color of each gauge
         /// </summary>
         /// <param name="metricsName"></param>
         private void ChangeBackgroundColor(string metricsName)
         {
-            bool isOutOfThreshold = false;
-            double threshold = 0;
             ProgressBar progressBar_Left = FindName($"Left_{metricsName}") as ProgressBar;
             ProgressBar progressBar_Right = FindName($"Right_{metricsName}") as ProgressBar;
-            if (metricsName == "Position")
-            {
-                double.TryParse("0." + Threshold_Position.Text, out threshold);
-                isOutOfThreshold = progressBar_Left.Value > threshold || progressBar_Right.Value > threshold;
-            }
-            else if (metricsName == "Acceleration")
-            {
-                double.TryParse("0." + Threshold_Acceleration.Text, out threshold);
-                isOutOfThreshold = (progressBar_Left.Value + progressBar_Right.Value) / 2.0 < threshold;
-
-            }
-            else if (metricsName == "Pressure")
-            {
-                double.TryParse(Threshold_Pressure.Text, out threshold);
-                isOutOfThreshold = progressBar_Left.Value > threshold || progressBar_Right.Value > threshold;
-            }
-
-            if (isOutOfThreshold)
-            {
-                progressBar_Left.Background = new SolidColorBrush(Colors.Yellow);
-                progressBar_Right.Background = new SolidColorBrush(Colors.Yellow);
-            }
-            else
-            {
-                progressBar_Left.Background = new SolidColorBrush(Colors.LightGray);
-                progressBar_Right.Background = new SolidColorBrush(Colors.LightGray);
-            }
+            TextBox textBox = FindName($"Threshold_{metricsName}") as TextBox;
+            SolidColorBrush solidColorBrush = DataDisplay.ChangeBackGroundColor(metricsName, progressBar_Left.Value, progressBar_Right.Value, textBox.Text);
+            progressBar_Left.Background = solidColorBrush;
+            progressBar_Right.Background = solidColorBrush;
         }
 
         /// <summary>

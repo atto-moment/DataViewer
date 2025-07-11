@@ -1,8 +1,10 @@
 ﻿using HelixToolkit.Wpf;
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -100,11 +102,8 @@ namespace DataViewer
         /// <param name="e"></param>
         private void NumericTextChanged(object sender, TextChangedEventArgs e)
         {
-            TextBox textbox = sender as TextBox;
-            if (!Regex.IsMatch(textbox.Text, @"^\d*$"))
-            {
-                textbox.Text = "0";
-            }
+            TextBox textBox = sender as TextBox;
+            textBox.Text = Regex.IsMatch(textBox.Text, @"^\d*$") ? textBox.Text : "0";
         }
 
         /// <summary>
@@ -193,53 +192,68 @@ namespace DataViewer
             int maximumFrame;
             string path;
 
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            CommonOpenFileDialog saveFileDialog = new CommonOpenFileDialog();
             saveFileDialog.Title = "Save files";
-            saveFileDialog.Filter = "Folder|.";
-            if (saveFileDialog.ShowDialog() == true)
+            saveFileDialog.IsFolderPicker = true;
+
+            if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                Directory.CreateDirectory(saveFileDialog.FileName);
-                saveFileDialog.FileName = saveFileDialog.FileName.Replace(".", "");
-                path = saveFileDialog.FileName + "/" + saveFileDialog.SafeFileName;
+                if (!Directory.Exists(saveFileDialog.FileName))
+                {
+                    Directory.CreateDirectory(saveFileDialog.FileName);
+                }
+                path = saveFileDialog.FileName.Replace(".", "") + "/" + saveFileDialog.FileName.Split("\\").Last();
 
                 if (postureDataList.Count > 0)
                 {
                     offset = int.Parse(FrameOffset_Minimum.Text) + int.Parse(FrameOffset_Posture.Text) - 1;
                     maximumFrame = Math.Min(int.Parse(FrameOffset_Maximum.Text) + int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_Posture.Text));
 
-                    for (int i = offset; i < maximumFrame; i++)
+                    if (clickedButton.Name == "Export_CSV")
                     {
-                        previousXPosition = xPosition;
-                        xPosition = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0] + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
-                        if (i == offset + 2)
+                        FileOperation.WriteCSVFile(path + "_Trimmed_Posture.csv", postureDataList, offset * Constant.BODYPARTS_POSTURE, (maximumFrame - 1) * Constant.BODYPARTS_POSTURE);
+                    }
+                    else if (clickedButton.Name == "Extract")
+                    {
+                        for (int i = offset; i < maximumFrame; i++)
                         {
-                            isLeftTurn = xPosition > previousXPosition;
-                        }
-                        else if (i > offset +  2)
-                        {
-                            if (isLeftTurn && xPosition < previousXPosition)
+                            previousXPosition = xPosition;
+                            xPosition = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0] + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
+                            if (i == offset + 2)
                             {
-                                isLeftTurn = !isLeftTurn;
-                                TurnIndexList.Add(i);
+                                isLeftTurn = xPosition > previousXPosition;
                             }
-                            else if (!isLeftTurn && xPosition > previousXPosition)
+                            else if (i > offset + 2)
                             {
-                                isLeftTurn = !isLeftTurn;
-                                TurnIndexList.Add(i);
+                                if (isLeftTurn && xPosition < previousXPosition)
+                                {
+                                    isLeftTurn = !isLeftTurn;
+                                    TurnIndexList.Add(i);
+                                }
+                                else if (!isLeftTurn && xPosition > previousXPosition)
+                                {
+                                    isLeftTurn = !isLeftTurn;
+                                    TurnIndexList.Add(i);
+                                }
                             }
                         }
+                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
                     }
 
-                    FileOperation.WriteCSVFile(path + "_Trimmed_Posture.csv", postureDataList, offset * Constant.BODYPARTS_POSTURE, (maximumFrame - 1) * Constant.BODYPARTS_POSTURE);
-                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
                 }
 
                 if (footPressureDataList.Count > 0)
                 {
                     offset = (int)Math.Round((int.Parse(FrameOffset_Minimum.Text) - 1) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text);
                     maximumFrame = Math.Min((int)Math.Round(double.Parse(FrameOffset_Maximum.Text) * double.Parse(FrameRateRatio.Text)) + int.Parse(FrameOffset_FootPressure.Text), int.Parse(FrameCount_FootPressure.Text));
-                    FileOperation.WriteCSVFile(path + "_Trimmed_FootPressure.csv", footPressureDataList, offset, maximumFrame);
-                    FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
+                    if (clickedButton.Name == "Export_CSV")
+                    {
+                        FileOperation.WriteCSVFile(path + "_Trimmed_FootPressure.csv", footPressureDataList, offset, maximumFrame);
+                    }
+                    else if (clickedButton.Name == "Extract")
+                    {
+                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
+                    }
                 }
             }
         }
@@ -270,7 +284,7 @@ namespace DataViewer
                 ChangeBackgroundColor("Position");
 
                 helixView.Children.Clear();
-                helixView.Children.Add(new DefaultLights());
+                helixView.Children.Add(new ModelVisual3D { Content = new AmbientLight { Color = Colors.White} });
                 helixView.Children.Add(new GridLinesVisual3D()
                 {
                     MajorDistance = 5.0,
@@ -341,42 +355,17 @@ namespace DataViewer
         }
 
         /// <summary>
-        /// Change a background color of each gauge
+        /// Change the background color of each gauge
         /// </summary>
         /// <param name="metricsName"></param>
         private void ChangeBackgroundColor(string metricsName)
         {
-            bool isOutOfThreshold = false;
-            double threshold = 0;
             ProgressBar progressBar_Left = FindName($"Left_{metricsName}") as ProgressBar;
             ProgressBar progressBar_Right = FindName($"Right_{metricsName}") as ProgressBar;
-            if (metricsName == "Position")
-            {
-                double.TryParse("0." + Threshold_Position.Text, out threshold);
-                isOutOfThreshold = progressBar_Left.Value > threshold || progressBar_Right.Value > threshold;
-            }
-            else if (metricsName == "Acceleration")
-            {
-                double.TryParse("0." + Threshold_Acceleration.Text, out threshold);
-                isOutOfThreshold = (progressBar_Left.Value + progressBar_Right.Value) / 2.0 < threshold;
-
-            }
-            else if (metricsName == "Pressure")
-            {
-                double.TryParse(Threshold_Pressure.Text, out threshold);
-                isOutOfThreshold = progressBar_Left.Value > threshold || progressBar_Right.Value > threshold;
-            }
-
-            if (isOutOfThreshold)
-            {
-                progressBar_Left.Background = new SolidColorBrush(Colors.Yellow);
-                progressBar_Right.Background = new SolidColorBrush(Colors.Yellow);
-            }
-            else
-            {
-                progressBar_Left.Background = new SolidColorBrush(Colors.LightGray);
-                progressBar_Right.Background = new SolidColorBrush(Colors.LightGray);
-            }
+            TextBox textBox = FindName($"Threshold_{metricsName}") as TextBox;
+            SolidColorBrush solidColorBrush = DataDisplay.ChangeBackGroundColor(metricsName, progressBar_Left.Value, progressBar_Right.Value, textBox.Text);
+            progressBar_Left.Background = solidColorBrush;
+            progressBar_Right.Background = solidColorBrush;
         }
 
         /// <summary>
@@ -394,7 +383,7 @@ namespace DataViewer
                 Stop.IsEnabled = true;
                 while ((int)Slider.Value < (int)Slider.Maximum)
                 {
-                    await Task.Delay(5);
+                    await Task.Delay(1);
                     Slider.Value += 1;
                     if (Play.IsEnabled)
                     {

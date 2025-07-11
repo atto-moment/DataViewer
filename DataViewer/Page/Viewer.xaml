@@ -196,6 +196,13 @@
                     </StackPanel>
                 </Grid>
 
+                <Grid Height="600" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                </Grid>
+
                 <Grid Height="600" Grid.Column="2">
                     <Path Stroke="Black" StrokeThickness="5" Data="M 150,10 C 40,5 10,220 10,250 C 10,290 25,310 25,440 C 25,500 10,580 90,590 C 170,590 160,500 155,440 C 150,370 160,340 170,300 C 200,210 210,225 215,150 C 215,75 210,20 150,10"/>
                     <Path x:Name="Left_1" Stroke="Black" Fill="White" Data="M 150,495 C 150,560 130,575 95,580 L 95,500 C 95,500 125,495 150,495 Z"/>
@@ -318,8 +325,8 @@
         <Grid x:Name="FrameTrimming" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="7*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="6*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
@@ -345,6 +352,7 @@
 
             <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row ="1" Grid.Column="1">
                 <Button x:Name="Export_CSV" Height="30" Width="90" Content="Export .csv" Click="Export"/>
+                <Button x:Name="Extract" Margin="20,0,0,0" Height="30" Width="90" Content="Extract turns" Click="Export"/>
             </StackPanel>
         </Grid>
 

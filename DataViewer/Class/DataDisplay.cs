@@ -106,5 +106,32 @@ namespace DataViewer
             double y = Math.Sqrt(Math.Pow(B[0] - A[0], 2) + Math.Pow(B[1] - A[1], 2)) * Math.Sqrt(Math.Pow(C[0] - A[0], 2) + Math.Pow(C[1] - A[1], 2));
             return x * 180 / y / Math.PI;
         }
+
+        /// <summary>
+        /// Change the background color of each progress bar
+        /// </summary>
+        /// <param name="metricsName"></param>
+        /// <param name="value_left"></param>
+        /// <param name="value_right"></param>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
+        public static SolidColorBrush ChangeBackGroundColor(string metricsName, double value_left, double value_right, string threshold)
+        {
+            bool isOutOfThreshold = false;
+            if (metricsName == "Position")
+            {
+                isOutOfThreshold = value_left > double.Parse("0." + threshold) || value_right > double.Parse("0." + threshold);
+            }
+            else if (metricsName == "Acceleration")
+            {
+                isOutOfThreshold = (value_left + value_right) / 2.0 < double.Parse("0." + threshold);
+
+            }
+            else if (metricsName == "Pressure")
+            {
+                isOutOfThreshold = value_left > double.Parse(threshold) || value_right > double.Parse(threshold);
+            }
+            return new SolidColorBrush(isOutOfThreshold ? Colors.Yellow : Colors.LightGray);
+        }
     }
 }

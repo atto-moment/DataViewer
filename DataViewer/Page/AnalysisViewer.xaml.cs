@@ -45,108 +45,24 @@ namespace DataViewer
                 folderPath = openFileDialog.FileName.Replace(".", "/");
                 try
                 {
-                    bool isCorrectFormat = false;
-                    Dictionary<string, double[]> dictionaryEven, dictionaryOdd;
-                    int turnCount;
-                    List<string> list;
                     string[] files = Directory.GetFiles(folderPath);
-                    string[] values_str;
-                    double[] values, valuesEven, valuesOdd;
+                    List<Tuple<double, string, double[]>> _postureDataList = new List<Tuple<double, string, double[]>>();
+                    List<double[]> _footPressureDataList = new List<double[]>();
 
-                    Array.Sort(files);
-                    foreach (string file in files.Where(path => path.EndsWith("_AllTurns_Posture.csv")))
+                    postureDataList = new List<Tuple<double, string, double[]>>();
+                    footPressureDataList = new List<double[]>();
+
+                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out _postureDataList, out _footPressureDataList, 0, 2);
+                    postureDataList.AddRange(_postureDataList);
+                    footPressureDataList.AddRange(_footPressureDataList);
+                    
+                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out _postureDataList, out _footPressureDataList, 1, 2);
+                    postureDataList.AddRange(_postureDataList);
+                    footPressureDataList.AddRange(_footPressureDataList);
+
+                    if (postureDataList[0].Item3[0] < postureDataList[Constant.BODYPARTS_POSTURE].Item3[0])
                     {
-                        list = FileOperation.ReadCSVFile(file, ".csv");
-                        isCorrectFormat = (list[0].Split(",").Length == Constant.DIMENTIONS_POSTURE) && ((list.Count - 1) % Constant.BODYPARTS_POSTURE == 0);
-                        if (isCorrectFormat)
-                        {
-                            list.RemoveAt(0);
-
-                            dictionaryEven = new Dictionary<string, double[]>();
-                            dictionaryOdd = new Dictionary<string, double[]>();
-                            for (int i = 0; i < list.Count() / Constant.BODYPARTS_POSTURE; i++)
-                            {
-                                for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
-                                {
-                                    values_str = list[i * Constant.BODYPARTS_POSTURE + j].Split(",");
-                                    values = [double.Parse(values_str[0]), double.Parse(values_str[2]), double.Parse(values_str[3]), double.Parse(values_str[4])];
-                                    if (i % 2 == 0)
-                                    {
-                                        if (dictionaryOdd.ContainsKey(values_str[1]))
-                                        {
-                                            dictionaryOdd[values_str[1]] = MatrixOperation.Sum(dictionaryOdd[values_str[1]], values);
-                                        }
-                                        else
-                                        {
-                                            dictionaryOdd.Add(values_str[1], values);
-                                        }
-
-                                    }
-                                    else
-                                    {
-                                        if (dictionaryEven.ContainsKey(values_str[1]))
-                                        {
-                                            dictionaryEven[values_str[1]] = MatrixOperation.Sum(dictionaryEven[values_str[1]], values);
-                                        }
-                                        else
-                                        {
-                                            dictionaryEven.Add(values_str[1], values);
-                                        }
-                                    }
-                                }
-                            }
-
-                            turnCount = list.Count / Constant.BODYPARTS_POSTURE / 2;
-                            foreach (KeyValuePair<string, double[]> valuePair in dictionaryOdd)
-                            {
-                                values = MatrixOperation.Division(valuePair.Value, turnCount % 2 == 0 ? turnCount : turnCount + 1);
-                                postureDataList.Add(new Tuple<double, string, double[]>(values[0], valuePair.Key, [values[1], values[2], values[3]]));
-                            }
-                            foreach (KeyValuePair<string, double[]> valuePair in dictionaryEven)
-                            {
-                                values = MatrixOperation.Division(valuePair.Value, turnCount);
-                                postureDataList.Add(new Tuple<double, string, double[]>(values[0], valuePair.Key, [values[1], values[2], values[3]]));
-                            }
-
-                            if (postureDataList[0].Item3[0] < postureDataList[Constant.BODYPARTS_POSTURE].Item3[0])
-                            {
-                                isReverse = true;
-                            }
-                        }
-                    }
-
-                    foreach (string file in files.Where(path => path.EndsWith("_AllTurns_FootPressure.csv")))
-                    {
-                        list = FileOperation.ReadCSVFile(file, ".csv");
-                        isCorrectFormat = list[0].Split(",").Length == Constant.DIMENTIONS_FOOTPRESSURE;
-                        if (isCorrectFormat)
-                        {
-                            list.RemoveAt(0);
-
-                            valuesEven = new double[Constant.DIMENTIONS_FOOTPRESSURE];
-                            valuesOdd = new double[Constant.DIMENTIONS_FOOTPRESSURE];
-                            Array.Fill(valuesEven, 0);
-                            Array.Fill(valuesOdd, 0);
-                            for (int i = 0; i < list.Count(); i++)
-                            {
-                                values_str = list[i].Split(",");
-                                if (i % 2 == 0)
-                                {
-                                    valuesOdd = MatrixOperation.Sum(valuesOdd, Array.ConvertAll(values_str, s => double.TryParse(s, out double x) ? x : 0));
-                                }
-                                else
-                                {
-                                    valuesEven = MatrixOperation.Sum(valuesEven, Array.ConvertAll(values_str, s => double.TryParse(s, out double x) ? x : 0));
-                                }
-                            }
-
-                            turnCount = list.Count / 2;
-
-                            valuesOdd = MatrixOperation.Division(valuesOdd, turnCount % 2 == 0 ? turnCount : turnCount + 1);
-                            footPressureDataList.Add(valuesOdd);
-                            valuesEven = MatrixOperation.Division(valuesEven, turnCount);
-                            footPressureDataList.Add(valuesEven);
-                        }
+                        isReverse = true;
                     }
                     FolderPath.Text = folderPath;
                 }
@@ -165,11 +81,8 @@ namespace DataViewer
         /// <param name="e"></param>
         private void NumericTextChanged(object sender, TextChangedEventArgs e)
         {
-            TextBox textbox = sender as TextBox;
-            if (!Regex.IsMatch(textbox.Text, @"^\d*$"))
-            {
-                textbox.Text = "0";
-            }
+            TextBox textBox = sender as TextBox;
+            textBox.Text = Regex.IsMatch(textBox.Text, @"^\d*$") ? textBox.Text : "0";
         }
 
         /// <summary>
@@ -203,6 +116,11 @@ namespace DataViewer
             }
         }
 
+        /// <summary>
+        /// View left/right turn summary
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void RadioButtonChecked(object sender, RoutedEventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
@@ -220,7 +138,7 @@ namespace DataViewer
                 ChangeBackgroundColor("Position");
 
                 helixView.Children.Clear();
-                helixView.Children.Add(new DefaultLights());
+                helixView.Children.Add(new ModelVisual3D { Content = new AmbientLight { Color = Colors.White } });
                 helixView.Children.Add(new GridLinesVisual3D()
                 {
                     MajorDistance = 5.0,
@@ -270,42 +188,17 @@ namespace DataViewer
         }
 
         /// <summary>
-        /// Change a background color of each gauge
+        /// Change the background color of each gauge
         /// </summary>
         /// <param name="metricsName"></param>
         private void ChangeBackgroundColor(string metricsName)
         {
-            bool isOutOfThreshold = false;
-            double threshold = 0;
             ProgressBar progressBar_Left = FindName($"Left_{metricsName}") as ProgressBar;
             ProgressBar progressBar_Right = FindName($"Right_{metricsName}") as ProgressBar;
-            if (metricsName == "Position")
-            {
-                double.TryParse("0." + Threshold_Position.Text, out threshold);
-                isOutOfThreshold = progressBar_Left.Value > threshold || progressBar_Right.Value > threshold;
-            }
-            else if (metricsName == "Acceleration")
-            {
-                double.TryParse("0." + Threshold_Acceleration.Text, out threshold);
-                isOutOfThreshold = (progressBar_Left.Value + progressBar_Right.Value) / 2.0 < threshold;
-
-            }
-            else if (metricsName == "Pressure")
-            {
-                double.TryParse(Threshold_Pressure.Text, out threshold);
-                isOutOfThreshold = progressBar_Left.Value > threshold || progressBar_Right.Value > threshold;
-            }
-
-            if (isOutOfThreshold)
-            {
-                progressBar_Left.Background = new SolidColorBrush(Colors.Yellow);
-                progressBar_Right.Background = new SolidColorBrush(Colors.Yellow);
-            }
-            else
-            {
-                progressBar_Left.Background = new SolidColorBrush(Colors.LightGray);
-                progressBar_Right.Background = new SolidColorBrush(Colors.LightGray);
-            }
+            TextBox textBox = FindName($"Threshold_{metricsName}") as TextBox;
+            SolidColorBrush solidColorBrush = DataDisplay.ChangeBackGroundColor(metricsName, progressBar_Left.Value, progressBar_Right.Value, textBox.Text);
+            progressBar_Left.Background = solidColorBrush;
+            progressBar_Right.Background = solidColorBrush;
         }
 
         /// <summary>
