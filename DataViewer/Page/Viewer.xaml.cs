@@ -328,17 +328,16 @@ namespace DataViewer
                         label.Content = pressureValue[1 + i * 25 + j];
                         label.Foreground = new SolidColorBrush(colorValue > 128 ? Colors.Black : Colors.White);
                     }
-                    progressBar = FindName($"{feets[i]}_Acceleration") as ProgressBar;
-                    progressBar.Value = Math.Max(pressureValue[18 + i * 25], 0);
+                    progressBar = FindName($"{feets[i]}_Angular") as ProgressBar;
+                    progressBar.Value = pressureValue[20 + i * 25];
 
                     progressBar = FindName($"{feets[i]}_Pressure") as ProgressBar;
                     progressBar.Value = pressureValue[23 + i * 25];
 
                     ellipse = FindName($"{feets[i]}_COP") as Ellipse;
-                    ellipse.Margin = new Thickness((i == 0 ? -1 : 1) * (45 - pressureValue[24 + i * 25] * 250), 75 - pressureValue[25 + i * 25] * 1000,0,0);
-
+                    ellipse.Margin = new Thickness((i == 0 ? -1 : 1) * (45 - pressureValue[25 + i * 25] * 250), - pressureValue[24 + i * 25] * 1000,0,0);
                 }
-                ChangeBackgroundColor("Acceleration");
+                ChangeBackgroundColor("Angular");
                 ChangeBackgroundColor("Pressure");
             }
 
@@ -394,7 +393,7 @@ namespace DataViewer
                 while ((int)Slider.Value < (int)Slider.Maximum)
                 {
                     await Task.Delay(1);
-                    Slider.Value += 1;
+                    Slider.Value += 2;
                     if (Play.IsEnabled)
                     {
                         break;

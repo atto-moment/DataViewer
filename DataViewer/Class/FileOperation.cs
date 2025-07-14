@@ -3,6 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 
 namespace DataViewer
 {
@@ -93,20 +98,26 @@ namespace DataViewer
                 double[][] values = new double[Constant.BODYPARTS_POSTURE][];
                 for (int i = offset; i < list.Count() / Constant.BODYPARTS_POSTURE; i += count)
                 {
+                    int index;
+                    double originX = 0;
                     for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
                     {
-                        int index = i * Constant.BODYPARTS_POSTURE + j;
+                        index = i * Constant.BODYPARTS_POSTURE + j;
+                        if (list[index].Item2 == "pelvis" && count != 1)
+                        {
+                            originX = list[index].Item3[0] + list[index].Item3[0] > 0 ? -0.01 : 0.01;
+                        }
                         if (values[index % Constant.BODYPARTS_POSTURE] == null)
                         {
-                            values[index % Constant.BODYPARTS_POSTURE] = [list[index].Item1, list[index].Item3[0], list[index].Item3[1], list[index].Item3[2]];
+                            values[index % Constant.BODYPARTS_POSTURE] = [list[index].Item1, list[index].Item3[0] - originX, list[index].Item3[1], list[index].Item3[2]];
                         }
                         else
                         {
-                            values[index % Constant.BODYPARTS_POSTURE] = MatrixOperation.Sum(values[index % Constant.BODYPARTS_POSTURE], [list[index].Item1, list[index].Item3[0], list[index].Item3[1], list[index].Item3[2]]);
+                            values[index % Constant.BODYPARTS_POSTURE] = MatrixOperation.Sum(values[index % Constant.BODYPARTS_POSTURE], [list[index].Item1, list[index].Item3[0] - originX, list[index].Item3[1], list[index].Item3[2]]);
                         }
                     }
                 }
-                length = Math.Round((list.Count - offset) / (double)count) / Constant.BODYPARTS_POSTURE;
+                length = Math.Round(Math.Round((list.Count - offset) / (double)count) / Constant.BODYPARTS_POSTURE);
                 for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
                 {
                     values[i] = MatrixOperation.Division(values[i], length);
@@ -304,6 +315,26 @@ namespace DataViewer
                         }
                     }
                 }
+            }
+        }
+
+        public static void CaptureScreen(string path, FrameworkElement element)
+        {
+            element.UpdateLayout();
+            double width = element.ActualWidth;
+            double height = element.ActualHeight;
+            DrawingVisual visual = new DrawingVisual();
+            using (DrawingContext context = visual.RenderOpen())
+            {
+                context.DrawRectangle(new BitmapCacheBrush(element), null, new Rect(0, 0, width, height));
+            }
+            RenderTargetBitmap beatmap = new RenderTargetBitmap((int)width, (int)height, 96d, 96d, PixelFormats.Pbgra32);
+            beatmap.Render(visual);
+            using (var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(beatmap));
+                encoder.Save(stream);
             }
         }
     }

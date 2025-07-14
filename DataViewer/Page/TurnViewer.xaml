@@ -112,9 +112,9 @@
                         <RowDefinition Height="9.5*"/>
                     </Grid.RowDefinitions>
 
-                    <Label Content="Accel." Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
+                    <Label Content="Angle" Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
                     <StackPanel Orientation="Horizontal" Grid.Row="1">
-                        <ProgressBar x:Name="Left_Acceleration" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="1">
+                        <ProgressBar x:Name="Left_Angular" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="-180" Maximum="180">
                             <ProgressBar.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform/>
@@ -125,7 +125,7 @@
                             </ProgressBar.RenderTransform>
                         </ProgressBar>
 
-                        <ProgressBar x:Name="Right_Acceleration" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="1">
+                        <ProgressBar x:Name="Right_Angular" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="-180" Maximum="180">
                             <ProgressBar.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform/>
@@ -143,15 +143,16 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
-                        <RowDefinition Height="7*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="6*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
                         <Label Content="Total Force (Left) [N]:" Foreground="Black"/>
                         <Label Content ="{Binding ElementName=Left_Pressure, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
                     </StackPanel>
                     <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="1">
-                        <Label Content="Acceleration X (Left) [g]:" Foreground="Black"/>
-                        <Label Content ="{Binding ElementName=Left_Acceleration, Path=Value}" ContentStringFormat="{}{0:0.000}" Foreground="Black"/>
+                        <Label Content="Angular X (Left) [dps]:" Foreground="Black"/>
+                        <Label Content ="{Binding ElementName=Left_Angular, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
                     </StackPanel>
                     <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="2">
                         <Label Content="Pressure Values (Left) [N/cm2]:" Foreground="Black"/>
@@ -163,15 +164,16 @@
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
-                        <RowDefinition Height="7*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="6*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
                         <Label Content="Total Force (Right) [N]:" Foreground="Black"/>
                         <Label Content ="{Binding ElementName=Right_Pressure, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
                     </StackPanel>
                     <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="1">
-                        <Label Content="Acceleration X (Right) [g]:" Foreground="Black"/>
-                        <Label Content ="{Binding ElementName=Right_Acceleration, Path=Value}" ContentStringFormat="{}{0:0.000}" Foreground="Black"/>
+                        <Label Content="Angular X (Right) [dps]:" Foreground="Black"/>
+                        <Label Content ="{Binding ElementName=Right_Angular, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
                     </StackPanel>
                     <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="2">
                         <Label Content="Pressure Values (Right) [N/cm2]:" Foreground="Black"/>
@@ -212,6 +214,7 @@
                     <Label x:Name="Left_14_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="160,50,0,0"/>
                     <Label x:Name="Left_15_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,60,0,0"/>
                     <Label x:Name="Left_16_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="65,80,0,0"/>
+                    <Ellipse x:Name="Left_COP" Fill="Yellow" Height="10" Width="10"  Stroke="Black" Margin="-45,0,0,0"/>
                 </Grid>
 
                 <Grid Height="600" Grid.Column="4">
@@ -250,6 +253,7 @@
                     <Label x:Name="Right_14_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="35,50,0,0"/>
                     <Label x:Name="Right_15_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="85,60,0,0"/>
                     <Label x:Name="Right_16_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="140,80,0,0"/>
+                    <Ellipse x:Name="Right_COP" Fill="Yellow" Height="10" Width="10"  Stroke="Black" Margin="45,0,0,0"/>
                 </Grid>
 
                 <Grid Height="600" Grid.Column="3">
@@ -316,9 +320,8 @@
                 <Label Content="(Pos.)" Margin="10,0,0,0" Width="50"/>
                 <Label Content="0. " VerticalAlignment="Center"/>
                 <TextBox x:Name="Threshold_Position" Height="30" Width="75" Text ="5" TextChanged="NumericTextChanged"/>
-                <Label Content="(Accel.)" Margin="10,0,0,0" Width="50"/>
-                <Label Content="0. " VerticalAlignment="Center"/>
-                <TextBox x:Name="Threshold_Acceleration" Height="30" Width="75" Text ="01" TextChanged="NumericTextChanged"/>
+                <Label Content="(Angle)" Margin="10,0,0,0" Width="50"/>
+                <TextBox x:Name="Threshold_Angular" Height="30" Width="75" Text ="90" TextChanged="NumericTextChanged"/>
                 <Label Content="(Press.)" Margin="10,0,0,0" Width="50"/>
                 <TextBox x:Name="Threshold_Pressure" Height="30" Width="75" Text ="500" TextChanged="NumericTextChanged"/>
             </StackPanel>
@@ -341,6 +344,7 @@
 
             <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row ="1" Grid.Column="0">
                 <Button x:Name="Export_CSV" Height="30" Width="90" Content="Export .csv" Click="Export"/>
+                <Button x:Name="Export_PNG" Margin="20,0,0,0" Height="30" Width="90" Content="Export .png" Click="Export"/>
             </StackPanel>
         </Grid>
 

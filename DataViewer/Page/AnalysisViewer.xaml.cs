@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
+using System.Windows.Shapes;
 
 namespace DataViewer
 {
@@ -90,7 +92,7 @@ namespace DataViewer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Export(object sender, RoutedEventArgs e)
+        private async void Export(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
             List<int> leftTurnIndexList = new List<int>();
@@ -103,15 +105,29 @@ namespace DataViewer
             if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 path = saveFileDialog.FileName.Replace(".", "") + "/" + saveFileDialog.FileName.Split("\\").Last();
-
-                if (postureDataList.Count > 0)
+                if (clickedButton.Name.Contains("CSV"))
                 {
-                    FileOperation.WriteCSVFile(path + "_Summary_Posture.csv", postureDataList, 0, postureDataList.Count);
+                    if (postureDataList.Count > 0)
+                    {
+                       // FileOperation.WriteCSVFile(path + "_AllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                    }
+                    if (footPressureDataList.Count > 0)
+                    {
+                        //FileOperation.WriteCSVFile(path + "_AllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                    }
                 }
-
-                if (footPressureDataList.Count > 0)
+                else if (clickedButton.Name.Contains("PNG"))
                 {
-                    FileOperation.WriteCSVFile(path + "_Summary_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                    string[] feets = ["Left", "Right"];
+                    RadioButton radioButton;
+                    for (int i = 0; i < 2; i++)
+                    {
+                        radioButton = FindName($"{feets[i]}Turn") as RadioButton;
+                        radioButton.IsChecked = true;
+                        await Task.Delay(50);
+                        FileOperation.CaptureScreen(path + $"_{feets[i]}Turn.png", DataViewer);
+                        await Task.Delay(50);
+                    }
                 }
             }
         }
@@ -167,6 +183,7 @@ namespace DataViewer
                 double[] pressureValue = footPressureDataList[Convert.ToInt32(isLeftTurn == isReverse)];
                 System.Windows.Shapes.Path path;
                 Label label;
+                Ellipse ellipse;
                 ProgressBar progressBar;
                 for (int i = 0; i < 2; i++)
                 {
@@ -180,14 +197,16 @@ namespace DataViewer
                         label.Content = pressureValue[1 + i * 25 + j];
                         label.Foreground = new SolidColorBrush(colorValue > 128 ? Colors.Black : Colors.White);
                     }
-                    progressBar = FindName($"{feets[i]}_Acceleration") as ProgressBar;
-                    progressBar.Value = Math.Max(pressureValue[18 + i * 25], 0);
+                    progressBar = FindName($"{feets[i]}_Angular") as ProgressBar;
+                    progressBar.Value = pressureValue[20 + i * 25];
 
                     progressBar = FindName($"{feets[i]}_Pressure") as ProgressBar;
                     progressBar.Value = pressureValue[23 + i * 25];
 
+                    ellipse = FindName($"{feets[i]}_COP") as Ellipse;
+                    ellipse.Margin = new Thickness((i == 0 ? -1 : 1) * (45 - pressureValue[25 + i * 25] * 250), -pressureValue[24 + i * 25] * 1000, 0, 0);
                 }
-                ChangeBackgroundColor("Acceleration");
+                ChangeBackgroundColor("Angular");
                 ChangeBackgroundColor("Pressure");
             }
         }

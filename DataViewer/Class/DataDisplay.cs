@@ -122,12 +122,7 @@ namespace DataViewer
             {
                 isOutOfThreshold = value_left > double.Parse("0." + threshold) || value_right > double.Parse("0." + threshold);
             }
-            else if (metricsName == "Acceleration")
-            {
-                isOutOfThreshold = (value_left + value_right) / 2.0 < double.Parse("0." + threshold);
-
-            }
-            else if (metricsName == "Pressure")
+            else if (metricsName == "Angular" || metricsName == "Pressure")
             {
                 isOutOfThreshold = value_left > double.Parse(threshold) || value_right > double.Parse(threshold);
             }

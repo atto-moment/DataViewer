@@ -4,12 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
+using System.Windows.Shapes;
 
 namespace DataViewer
 {
@@ -53,7 +56,7 @@ namespace DataViewer
                     FolderPath.Text = "(Loading File Failure)";
                 }
             }
-            Slider.Maximum = Math.Max((postureDataList.Count - 1) / Constant.BODYPARTS_POSTURE, footPressureDataList.Count - 1);
+            Slider.Maximum = Math.Max(postureDataList.Count / Constant.BODYPARTS_POSTURE, footPressureDataList.Count);
             SliderValueChanged(Slider, new RoutedPropertyChangedEventArgs<double>(1, 1));
         }
 
@@ -73,7 +76,7 @@ namespace DataViewer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Export(object sender, RoutedEventArgs e)
+        private async void Export(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
             List<int> leftTurnIndexList = new List<int>();
@@ -86,15 +89,26 @@ namespace DataViewer
             if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 path = saveFileDialog.FileName.Replace(".", "") + "/" + saveFileDialog.FileName.Split("\\").Last();
-
-                if (postureDataList.Count > 0)
+                if (clickedButton.Name.Contains("CSV"))
                 {
-                    FileOperation.WriteCSVFile(path + "_AllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                    if (postureDataList.Count > 0)
+                    {
+                        FileOperation.WriteCSVFile(path + "_AllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                    }
+                    if (footPressureDataList.Count > 0)
+                    {
+                        FileOperation.WriteCSVFile(path + "_AllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                    }
                 }
-
-                if (footPressureDataList.Count > 0)
+                else if (clickedButton.Name.Contains("PNG"))
                 {
-                    FileOperation.WriteCSVFile(path + "_AllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                    for (int i = 1; i <= Slider.Maximum; i++)
+                    {
+                        Slider.Value = i;
+                        await Task.Delay(50);
+                        FileOperation.CaptureScreen(path + "_Turn_" + i.ToString("D" + 3) + ".png", DataViewer);
+                        await Task.Delay(50);
+                    }
                 }
             }
         }
@@ -108,7 +122,7 @@ namespace DataViewer
         {
             int sliderValue = (int)Slider.Value;
 
-            if (sliderValue < postureDataList.Count)
+            if (sliderValue <= postureDataList.Count / Constant.BODYPARTS_POSTURE)
             {
                 MeshBuilder meshBuilder = new MeshBuilder();
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
@@ -142,14 +156,20 @@ namespace DataViewer
                 });
             }
 
-            if (sliderValue < footPressureDataList.Count)
+            if (sliderValue <= footPressureDataList.Count)
             {
                 byte colorValue;
                 string[] feets = ["Left", "Right"];
                 double[] pressureValue = footPressureDataList[sliderValue - 1];
                 System.Windows.Shapes.Path path;
                 Label label;
+                Ellipse ellipse;
                 ProgressBar progressBar;
+                if (pressureValue.Contains(double.NaN))
+                {
+                    Array.Fill(pressureValue, 0);
+                }
+
                 for (int i = 0; i < 2; i++)
                 {
                     for (int j = 0; j < 16; j++)
@@ -162,14 +182,16 @@ namespace DataViewer
                         label.Content = pressureValue[1 + i * 25 + j];
                         label.Foreground = new SolidColorBrush(colorValue > 128 ? Colors.Black : Colors.White);
                     }
-                    progressBar = FindName($"{feets[i]}_Acceleration") as ProgressBar;
-                    progressBar.Value = Math.Max(pressureValue[18 + i * 25], 0);
+                    progressBar = FindName($"{feets[i]}_Angular") as ProgressBar;
+                    progressBar.Value = pressureValue[20 + i * 25];
 
                     progressBar = FindName($"{feets[i]}_Pressure") as ProgressBar;
                     progressBar.Value = pressureValue[23 + i * 25];
 
+                    ellipse = FindName($"{feets[i]}_COP") as Ellipse;
+                    ellipse.Margin = new Thickness((i == 0 ? -1 : 1) * (45 - pressureValue[25 + i * 25] * 250), -pressureValue[24 + i * 25] * 1000, 0, 0);
                 }
-                ChangeBackgroundColor("Acceleration");
+                ChangeBackgroundColor("Angular");
                 ChangeBackgroundColor("Pressure");
             }
         }
@@ -197,11 +219,12 @@ namespace DataViewer
         {
             if (Slider.Maximum > 1)
             {
-                postureDataList.RemoveRange(1 + ((int)Slider.Value - 1) * Constant.BODYPARTS_POSTURE, Constant.BODYPARTS_POSTURE);
-                footPressureDataList.RemoveAt((int)Slider.Value);
+                postureDataList.RemoveRange(((int)Slider.Value - 1) * Constant.BODYPARTS_POSTURE, Constant.BODYPARTS_POSTURE);
+                footPressureDataList.RemoveAt((int)Slider.Value - 1);
 
                 Slider.Value = 1;
-                Slider.Maximum = Math.Max((postureDataList.Count - 1) / Constant.BODYPARTS_POSTURE, footPressureDataList.Count - 1);
+                SliderValueChanged(Slider, new RoutedPropertyChangedEventArgs<double>(1, 1));
+                Slider.Maximum = Math.Max(postureDataList.Count / Constant.BODYPARTS_POSTURE, footPressureDataList.Count);
             }
         }
 
