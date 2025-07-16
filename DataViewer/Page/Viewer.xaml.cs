@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -216,25 +217,35 @@ namespace DataViewer
                     }
                     else if (clickedButton.Name == "Extract")
                     {
+                        double peakXPosition = 0;
+                        int index = offset;
+                        double displacement = 0;
                         for (int i = offset; i < maximumFrame; i++)
                         {
                             previousXPosition = xPosition;
                             xPosition = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0] + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
-                            if (i == offset + 2)
+                            if (i < offset + 4)
                             {
-                                isLeftTurn = xPosition > previousXPosition;
+                                displacement = displacement + (xPosition - previousXPosition);
                             }
-                            else if (i > offset + 2)
+                            else if (i == offset + 4)
                             {
-                                if (isLeftTurn && xPosition < previousXPosition)
+                                isLeftTurn = displacement > 0;
+                            }
+                            else 
+                            {
+                                peakXPosition = isLeftTurn ? Math.Max(xPosition, peakXPosition) : Math.Min(xPosition, peakXPosition);
+                                if (peakXPosition == xPosition)
                                 {
-                                    isLeftTurn = !isLeftTurn;
-                                    TurnIndexList.Add(i);
+                                    index = i;
                                 }
-                                else if (!isLeftTurn && xPosition > previousXPosition)
+                                else
                                 {
-                                    isLeftTurn = !isLeftTurn;
-                                    TurnIndexList.Add(i);
+                                    if (Math.Abs(peakXPosition - xPosition) > 0.1)
+                                    {
+                                        isLeftTurn = !isLeftTurn;
+                                        TurnIndexList.Add(index);
+                                    }
                                 }
                             }
                         }
@@ -256,6 +267,8 @@ namespace DataViewer
                         FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
                     }
                 }
+
+                FileOperation.WriteDATFile(path + "_OffsetSetting.dat", FrameOffset_Posture, FrameOffset_FootPressure);
             }
         }
 
@@ -431,6 +444,33 @@ namespace DataViewer
             {
                 NavigationService.Navigate(Constant.ANALYSIS_VIEW);
             }
+        }
+
+        private void ReadOffsetFile(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select a file";
+            openFileDialog.Filter = "All Supported Format (*.dat)|*.dat;";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+                try
+                {
+                    string[] lines = File.ReadAllLines(filePath);
+                    string dataName;
+                    TextBox textBox;
+                    foreach (string line in lines)
+                    {
+                        dataName = line.Split(",")[0];
+                        textBox = FindName(dataName) as TextBox;
+                        textBox.Text = line.Split(",")[1];
+                    }
+                }
+                catch
+                {
+                }
+            }
+
         }
     }
 }

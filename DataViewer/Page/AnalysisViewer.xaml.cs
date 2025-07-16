@@ -124,9 +124,9 @@ namespace DataViewer
                     {
                         radioButton = FindName($"{feets[i]}Turn") as RadioButton;
                         radioButton.IsChecked = true;
-                        await Task.Delay(50);
+                        await Task.Delay(100);
                         FileOperation.CaptureScreen(path + $"_{feets[i]}Turn.png", DataViewer);
-                        await Task.Delay(50);
+                        await Task.Delay(100);
                     }
                 }
             }

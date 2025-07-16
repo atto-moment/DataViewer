@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using System.Xml.Linq;
 
 namespace DataViewer
@@ -335,6 +337,15 @@ namespace DataViewer
                 var encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(beatmap));
                 encoder.Save(stream);
+            }
+        }
+
+        public static void WriteDATFile(string path, TextBox textBox1, TextBox textBox2)
+        {
+            using (StreamWriter writer = new StreamWriter(path))
+            {
+                writer.WriteLine(String.Join(",", [textBox1.Name, textBox1.Text]));
+                writer.WriteLine(String.Join(",", [textBox2.Name, textBox2.Text]));
             }
         }
     }

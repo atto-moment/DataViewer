@@ -19,11 +19,12 @@
 
         <Grid x:Name="Picker" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*"/>
-                <ColumnDefinition Width="1.25*"/>
-                <ColumnDefinition Width="1.25*"/>
+                <ColumnDefinition Width="3.5*"/>
+                <ColumnDefinition Width="1.125*"/>
+                <ColumnDefinition Width="1.125*"/>
                 <ColumnDefinition Width="1.5*"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.75*"/>
+                <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
@@ -94,6 +95,10 @@
                 <TextBox x:Name="FrameOffset_FootPressure" Height="30" Width="75" Text ="0" TextChanged="NumericTextChanged" IsEnabled="False"/>
                 <Button x:Name="Plus_FootPressure" Height="30" Width="30" Content="&#x203A;" Click="SetOffset" Tag="1"/>
                 <Button x:Name="PlusPlus_FootPressure" Height="30" Width="30" Content="&#xBB;" Click="SetOffset" Tag="10"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row="1" Grid.Column="5">
+                <Button Height="30" Width="120" Content="Read Offset File" Click="ReadOffsetFile"/>
             </StackPanel>
         </Grid>
 

@@ -105,9 +105,9 @@ namespace DataViewer
                     for (int i = 1; i <= Slider.Maximum; i++)
                     {
                         Slider.Value = i;
-                        await Task.Delay(50);
+                        await Task.Delay(100);
                         FileOperation.CaptureScreen(path + "_Turn_" + i.ToString("D" + 3) + ".png", DataViewer);
-                        await Task.Delay(50);
+                        await Task.Delay(100);
                     }
                 }
             }
