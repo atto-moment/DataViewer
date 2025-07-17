@@ -241,7 +241,7 @@ namespace DataViewer
                                 }
                                 else
                                 {
-                                    if (Math.Abs(peakXPosition - xPosition) > 0.1)
+                                    if (Math.Abs(peakXPosition - xPosition) > 0.3)
                                     {
                                         isLeftTurn = !isLeftTurn;
                                         TurnIndexList.Add(index);
@@ -249,7 +249,7 @@ namespace DataViewer
                                 }
                             }
                         }
-                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", postureDataList, int.Parse(FrameOffset_Posture.Text), maximumFrame);
+                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", postureDataList, 0, maximumFrame);
                     }
 
                 }
@@ -261,14 +261,13 @@ namespace DataViewer
                     if (clickedButton.Name == "Export_CSV")
                     {
                         FileOperation.WriteCSVFile(path + "_Trimmed_FootPressure.csv", footPressureDataList, offset, maximumFrame);
+                        FileOperation.WriteDATFile(path + "_OffsetSetting.dat", FrameOffset_Posture, FrameOffset_FootPressure);
                     }
                     else if (clickedButton.Name == "Extract")
                     {
-                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text), maximumFrame, double.Parse(FrameRateRatio.Text));
+                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text) - int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_FootPressure.Text), double.Parse(FrameRateRatio.Text));
                     }
                 }
-
-                FileOperation.WriteDATFile(path + "_OffsetSetting.dat", FrameOffset_Posture, FrameOffset_FootPressure);
             }
         }
 
