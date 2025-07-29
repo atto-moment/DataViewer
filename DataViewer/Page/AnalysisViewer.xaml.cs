@@ -21,8 +21,9 @@ namespace DataViewer
     public partial class AnalysisViewer : Page
     {
         List<Tuple<double, string, double[]>> postureDataList = new List<Tuple<double, string, double[]>>();
+        List<Tuple<double, string, double[]>> _postureDataList = new List<Tuple<double, string, double[]>>();
         List<double[]> footPressureDataList = new List<double[]>();
-        bool isReverse = false;
+        List<double[]> _footPressureDataList = new List<double[]>();
 
         public AnalysisViewer()
         {
@@ -48,23 +49,25 @@ namespace DataViewer
                 try
                 {
                     string[] files = Directory.GetFiles(folderPath);
-                    List<Tuple<double, string, double[]>> _postureDataList = new List<Tuple<double, string, double[]>>();
-                    List<double[]> _footPressureDataList = new List<double[]>();
-
                     postureDataList = new List<Tuple<double, string, double[]>>();
+                    _postureDataList = new List<Tuple<double, string, double[]>>();
                     footPressureDataList = new List<double[]>();
+                    _footPressureDataList = new List<double[]>();
 
                     FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out _postureDataList, out _footPressureDataList, 0, 2);
                     postureDataList.AddRange(_postureDataList);
                     footPressureDataList.AddRange(_footPressureDataList);
                     
                     FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out _postureDataList, out _footPressureDataList, 1, 2);
-                    postureDataList.AddRange(_postureDataList);
-                    footPressureDataList.AddRange(_footPressureDataList);
-
-                    if (postureDataList[0].Item3[0] < postureDataList[Constant.BODYPARTS_POSTURE].Item3[0])
+                    if (postureDataList[0].Item3[0] < _postureDataList[0].Item3[0])
                     {
-                        isReverse = true;
+                        postureDataList.InsertRange(0, _postureDataList);
+                        footPressureDataList.InsertRange(0, _footPressureDataList);
+                    }
+                    else
+                    {
+                        postureDataList.AddRange(_postureDataList);
+                        footPressureDataList.AddRange(_footPressureDataList);
                     }
                     FolderPath.Text = folderPath;
                 }
@@ -140,13 +143,13 @@ namespace DataViewer
         private void RadioButtonChecked(object sender, RoutedEventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
-            bool isLeftTurn = radioButton.Name == "LeftTurn";
+            bool isRightTurn = radioButton.Name == "RightTurn";
 
             if (postureDataList.Count / Constant.BODYPARTS_POSTURE > 1)
             {
                 MeshBuilder meshBuilder = new MeshBuilder();
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
-                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isLeftTurn == isReverse), out pointList, out meshBuilder);
+                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isRightTurn), out pointList, out meshBuilder);
                 double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
 
                 Right_Position.Value = Math.Max(feetXPosition, 0);
@@ -161,13 +164,17 @@ namespace DataViewer
                     MinorDistance = 0.5,
                     Thickness = 0.01,
                 });
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, 2.5], Brushes.White));
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, -5], Brushes.White));
                 helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
                 helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
                 helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
                     pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
                     pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
                     [0, 0, -2.5]));
+                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    [0, 0, 2.5]));
                 helixView.Children.Add(new ModelVisual3D
                 {
                     Content = new GeometryModel3D(
@@ -180,7 +187,7 @@ namespace DataViewer
             {
                 byte colorValue;
                 string[] feets = ["Left", "Right"];
-                double[] pressureValue = footPressureDataList[Convert.ToInt32(isLeftTurn == isReverse)];
+                double[] pressureValue = footPressureDataList[Convert.ToInt32(isRightTurn)];
                 System.Windows.Shapes.Path path;
                 Label label;
                 Ellipse ellipse;

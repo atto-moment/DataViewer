@@ -86,8 +86,73 @@ namespace DataViewer
         /// Get the mean values of all frames from the CSV file 
         /// </summary>
         /// <param name="files"></param>
-        /// <returns></returns>
+        /// <param name="postureDataList"></param>
+        /// <param name="footPressureDataList"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
         public static void GetMeanValues(string[] files, out List<Tuple<double, string, double[]>> postureDataList, out List<double[]> footPressureDataList, int offset = 0, int count = 1)
+        {
+            double length;
+            postureDataList = new List<Tuple<double, string, double[]>>();
+            footPressureDataList = new List<double[]>();
+            Array.Sort(files);
+
+            foreach (string file in files.Where(path => path.EndsWith("Posture.csv")))
+            {
+                List<Tuple<double, string, double[]>> list = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(file, ".csv");
+                double[][] values = new double[Constant.BODYPARTS_POSTURE][];
+                for (int i = offset; i < list.Count() / Constant.BODYPARTS_POSTURE; i += count)
+                {
+                    int index;
+                    double originX = 0;
+                    for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
+                    {
+                        index = i * Constant.BODYPARTS_POSTURE + j;
+                        if (list[index].Item2 == "pelvis" && count != 1)
+                        {
+                            originX = list[index].Item3[0] + list[index].Item3[0] > 0 ? -0.01 : 0.01;
+                        }
+                        if (values[index % Constant.BODYPARTS_POSTURE] == null)
+                        {
+                            values[index % Constant.BODYPARTS_POSTURE] = [list[index].Item1, list[index].Item3[0] - originX, list[index].Item3[1], list[index].Item3[2]];
+                        }
+                        else
+                        {
+                            values[index % Constant.BODYPARTS_POSTURE] = MatrixOperation.Sum(values[index % Constant.BODYPARTS_POSTURE], [list[index].Item1, list[index].Item3[0] - originX, list[index].Item3[1], list[index].Item3[2]]);
+                        }
+                    }
+                }
+                length = Math.Round(Math.Round((list.Count - offset) / (double)count) / Constant.BODYPARTS_POSTURE);
+                for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
+                {
+                    values[i] = MatrixOperation.Division(values[i], length);
+                    postureDataList.Add(new Tuple<double, string, double[]>(values[i][0], Constant.JOINTNAMES[i], [values[i][1], values[i][2], values[i][3]]));
+                }
+            }
+            foreach (string file in files.Where(path => path.EndsWith("FootPressure.csv")))
+            {
+                List<double[]> list = (List<double[]>)FileOperation.ReadAllFrames(file, ".csv");
+                double[] values = new double[Constant.DIMENTIONS_FOOTPRESSURE];
+                Array.Fill(values, 0);
+                for (int i = offset; i < list.Count(); i += count)
+                {
+                    values = MatrixOperation.Sum(values, list[i]);
+                }
+                length = Math.Round((list.Count - offset) / (double)count);
+                values = MatrixOperation.Division(values, length);
+                footPressureDataList.Add(values);
+            }
+        }
+
+        /// <summary>
+        /// WIP
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="postureDataList"></param>
+        /// <param name="footPressureDataList"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        public static void GetVarianceValues(string[] files, out List<Tuple<double, string, double[]>> postureDataList, out List<double[]> footPressureDataList, int offset = 0, int count = 1)
         {
             double length;
             postureDataList = new List<Tuple<double, string, double[]>>();
@@ -281,7 +346,6 @@ namespace DataViewer
         /// </summary>
         /// <param name="indexList"></param>
         /// <param name="path"></param>
-        /// <param name="dataName"></param>
         /// <param name="dataList"></param>
         /// <param name="offset"></param>
         /// <param name="maximumFrame"></param>
@@ -320,6 +384,11 @@ namespace DataViewer
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="element"></param>
         public static void CaptureScreen(string path, FrameworkElement element)
         {
             element.UpdateLayout();
@@ -340,6 +409,12 @@ namespace DataViewer
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="textBox1"></param>
+        /// <param name="textBox2"></param>
         public static void WriteDATFile(string path, TextBox textBox1, TextBox textBox2)
         {
             using (StreamWriter writer = new StreamWriter(path))

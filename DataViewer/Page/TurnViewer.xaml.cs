@@ -141,13 +141,17 @@ namespace DataViewer
                     MinorDistance = 0.5,
                     Thickness = 0.01,
                 });
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, 2.5], Brushes.White));
+                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, -5], Brushes.White));
                 helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
                 helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
                 helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
                     pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
                     pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
                     [0, 0, -2.5]));
+                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    [0, 0, 2.5]));
                 helixView.Children.Add(new ModelVisual3D
                 {
                     Content = new GeometryModel3D(
