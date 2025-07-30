@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Net.WebRequestMethods;
 
 namespace DataViewer
 {
@@ -50,15 +51,14 @@ namespace DataViewer
                 {
                     string[] files = Directory.GetFiles(folderPath);
                     postureDataList = new List<Tuple<double, string, double[]>>();
-                    _postureDataList = new List<Tuple<double, string, double[]>>();
                     footPressureDataList = new List<double[]>();
-                    _footPressureDataList = new List<double[]>();
 
-                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out _postureDataList, out _footPressureDataList, 0, 2);
+                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_A_")).ToArray(), out _postureDataList, out _footPressureDataList);
                     postureDataList.AddRange(_postureDataList);
                     footPressureDataList.AddRange(_footPressureDataList);
                     
-                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out _postureDataList, out _footPressureDataList, 1, 2);
+                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_B_")).ToArray(), out _postureDataList, out _footPressureDataList);
+
                     if (postureDataList[0].Item3[0] < _postureDataList[0].Item3[0])
                     {
                         postureDataList.InsertRange(0, _postureDataList);
@@ -69,6 +69,7 @@ namespace DataViewer
                         postureDataList.AddRange(_postureDataList);
                         footPressureDataList.AddRange(_footPressureDataList);
                     }
+
                     FolderPath.Text = folderPath;
                 }
                 catch
@@ -111,12 +112,12 @@ namespace DataViewer
                 if (clickedButton.Name.Contains("CSV"))
                 {
                     if (postureDataList.Count > 0)
-                    {
-                       // FileOperation.WriteCSVFile(path + "_AllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                    {                        
+                        FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
                     }
                     if (footPressureDataList.Count > 0)
                     {
-                        //FileOperation.WriteCSVFile(path + "_AllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                        FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
                     }
                 }
                 else if (clickedButton.Name.Contains("PNG"))
@@ -172,8 +173,8 @@ namespace DataViewer
                     pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
                     [0, 0, -2.5]));
                 helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
                     [0, 0, 2.5]));
                 helixView.Children.Add(new ModelVisual3D
                 {

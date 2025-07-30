@@ -27,7 +27,7 @@ namespace DataViewer
             {
                 data = dataList[(offset + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i];
                 pointList.Add(new Tuple<string, Point3D>(data.Item2, new Point3D(data.Item3[0], data.Item3[1], data.Item3[2])));
-                meshBuilder.AddSphere(pointList[i].Item2, 0.1);
+                meshBuilder.AddSphere(pointList[i].Item2, 0.05);
                 if (pointList[i].Item1 != "pelvis")
                 {
                     if (pointList[i - 1].Item1.Contains("end:"))
@@ -38,7 +38,7 @@ namespace DataViewer
                     {
                         previousPoint = pointList[i - 1].Item2;
                     }
-                    meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.05);
+                    meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.025);
                 }
             }
         }

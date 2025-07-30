@@ -79,10 +79,9 @@ namespace DataViewer
         private async void Export(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
-            List<int> leftTurnIndexList = new List<int>();
-            List<int> rightTurnIndexList = new List<int>();
             string path;
-
+            List<Tuple<double, string, double[]>> _postureDataList;
+            List<double[]> _footPressureDataList;
             CommonOpenFileDialog saveFileDialog = new CommonOpenFileDialog();
             saveFileDialog.Title = "Save files";
             saveFileDialog.IsFolderPicker = true;
@@ -93,11 +92,17 @@ namespace DataViewer
                 {
                     if (postureDataList.Count > 0)
                     {
-                        FileOperation.WriteCSVFile(path + "_AllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                        _postureDataList = postureDataList.Where(data => postureDataList.IndexOf(data) % (Constant.BODYPARTS_POSTURE * 2) < Constant.BODYPARTS_POSTURE).ToList();
+                        FileOperation.WriteCSVFile(path + "_AllTurns_A_Posture.csv", _postureDataList, 0, _postureDataList.Count);
+                        _postureDataList = postureDataList.Where(data => postureDataList.IndexOf(data) % (Constant.BODYPARTS_POSTURE * 2) >= Constant.BODYPARTS_POSTURE).ToList();
+                        FileOperation.WriteCSVFile(path + "_AllTurns_B_Posture.csv", _postureDataList, 0, _postureDataList.Count);
                     }
                     if (footPressureDataList.Count > 0)
                     {
-                        FileOperation.WriteCSVFile(path + "_AllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                        _footPressureDataList = footPressureDataList.Where(data => footPressureDataList.IndexOf(data) % 2 == 0).ToList();
+                        FileOperation.WriteCSVFile(path + "_AllTurns_A_FootPressure.csv", _footPressureDataList, 0, _footPressureDataList.Count);
+                        _footPressureDataList = footPressureDataList.Where(data => footPressureDataList.IndexOf(data) % 2 == 1).ToList();
+                        FileOperation.WriteCSVFile(path + "_AllTurns_B_FootPressure.csv", _footPressureDataList, 0, _footPressureDataList.Count);
                     }
                 }
                 else if (clickedButton.Name.Contains("PNG"))
@@ -149,8 +154,8 @@ namespace DataViewer
                     pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
                     [0, 0, -2.5]));
                 helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_clavicle")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
                     [0, 0, 2.5]));
                 helixView.Children.Add(new ModelVisual3D
                 {

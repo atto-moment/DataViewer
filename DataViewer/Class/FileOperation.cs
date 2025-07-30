@@ -90,9 +90,8 @@ namespace DataViewer
         /// <param name="footPressureDataList"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
-        public static void GetMeanValues(string[] files, out List<Tuple<double, string, double[]>> postureDataList, out List<double[]> footPressureDataList, int offset = 0, int count = 1)
+        public static void GetMeanValues(string[] files, out List<Tuple<double, string, double[]>> postureDataList, out List<double[]> footPressureDataList)
         {
-            double length;
             postureDataList = new List<Tuple<double, string, double[]>>();
             footPressureDataList = new List<double[]>();
             Array.Sort(files);
@@ -101,16 +100,16 @@ namespace DataViewer
             {
                 List<Tuple<double, string, double[]>> list = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(file, ".csv");
                 double[][] values = new double[Constant.BODYPARTS_POSTURE][];
-                for (int i = offset; i < list.Count() / Constant.BODYPARTS_POSTURE; i += count)
+                for (int i = 0; i < list.Count() / Constant.BODYPARTS_POSTURE; i++)
                 {
                     int index;
                     double originX = 0;
                     for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
                     {
                         index = i * Constant.BODYPARTS_POSTURE + j;
-                        if (list[index].Item2 == "pelvis" && count != 1)
+                        if (list[index].Item2 == "pelvis")
                         {
-                            originX = list[index].Item3[0] + list[index].Item3[0] > 0 ? -0.01 : 0.01;
+                            originX = list[index].Item3[0] + (list[index].Item3[0] > 0 ? -0.01 : 0.01);
                         }
                         if (values[index % Constant.BODYPARTS_POSTURE] == null)
                         {
@@ -122,10 +121,9 @@ namespace DataViewer
                         }
                     }
                 }
-                length = Math.Round(Math.Round((list.Count - offset) / (double)count) / Constant.BODYPARTS_POSTURE);
                 for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
                 {
-                    values[i] = MatrixOperation.Division(values[i], length);
+                    values[i] = MatrixOperation.Division(values[i], list.Count / Constant.BODYPARTS_POSTURE);
                     postureDataList.Add(new Tuple<double, string, double[]>(values[i][0], Constant.JOINTNAMES[i], [values[i][1], values[i][2], values[i][3]]));
                 }
             }
@@ -134,74 +132,11 @@ namespace DataViewer
                 List<double[]> list = (List<double[]>)FileOperation.ReadAllFrames(file, ".csv");
                 double[] values = new double[Constant.DIMENTIONS_FOOTPRESSURE];
                 Array.Fill(values, 0);
-                for (int i = offset; i < list.Count(); i += count)
+                for (int i = 0; i < list.Count(); i ++)
                 {
                     values = MatrixOperation.Sum(values, list[i]);
                 }
-                length = Math.Round((list.Count - offset) / (double)count);
-                values = MatrixOperation.Division(values, length);
-                footPressureDataList.Add(values);
-            }
-        }
-
-        /// <summary>
-        /// WIP
-        /// </summary>
-        /// <param name="files"></param>
-        /// <param name="postureDataList"></param>
-        /// <param name="footPressureDataList"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
-        public static void GetVarianceValues(string[] files, out List<Tuple<double, string, double[]>> postureDataList, out List<double[]> footPressureDataList, int offset = 0, int count = 1)
-        {
-            double length;
-            postureDataList = new List<Tuple<double, string, double[]>>();
-            footPressureDataList = new List<double[]>();
-            Array.Sort(files);
-
-            foreach (string file in files.Where(path => path.EndsWith("Posture.csv")))
-            {
-                List<Tuple<double, string, double[]>> list = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(file, ".csv");
-                double[][] values = new double[Constant.BODYPARTS_POSTURE][];
-                for (int i = offset; i < list.Count() / Constant.BODYPARTS_POSTURE; i += count)
-                {
-                    int index;
-                    double originX = 0;
-                    for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
-                    {
-                        index = i * Constant.BODYPARTS_POSTURE + j;
-                        if (list[index].Item2 == "pelvis" && count != 1)
-                        {
-                            originX = list[index].Item3[0] + list[index].Item3[0] > 0 ? -0.01 : 0.01;
-                        }
-                        if (values[index % Constant.BODYPARTS_POSTURE] == null)
-                        {
-                            values[index % Constant.BODYPARTS_POSTURE] = [list[index].Item1, list[index].Item3[0] - originX, list[index].Item3[1], list[index].Item3[2]];
-                        }
-                        else
-                        {
-                            values[index % Constant.BODYPARTS_POSTURE] = MatrixOperation.Sum(values[index % Constant.BODYPARTS_POSTURE], [list[index].Item1, list[index].Item3[0] - originX, list[index].Item3[1], list[index].Item3[2]]);
-                        }
-                    }
-                }
-                length = Math.Round(Math.Round((list.Count - offset) / (double)count) / Constant.BODYPARTS_POSTURE);
-                for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
-                {
-                    values[i] = MatrixOperation.Division(values[i], length);
-                    postureDataList.Add(new Tuple<double, string, double[]>(values[i][0], Constant.JOINTNAMES[i], [values[i][1], values[i][2], values[i][3]]));
-                }
-            }
-            foreach (string file in files.Where(path => path.EndsWith("FootPressure.csv")))
-            {
-                List<double[]> list = (List<double[]>)FileOperation.ReadAllFrames(file, ".csv");
-                double[] values = new double[Constant.DIMENTIONS_FOOTPRESSURE];
-                Array.Fill(values, 0);
-                for (int i = offset; i < list.Count(); i += count)
-                {
-                    values = MatrixOperation.Sum(values, list[i]);
-                }
-                length = Math.Round((list.Count - offset) / (double)count);
-                values = MatrixOperation.Division(values, length);
+                values = MatrixOperation.Division(values, list.Count);
                 footPressureDataList.Add(values);
             }
         }
