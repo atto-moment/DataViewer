@@ -17,7 +17,7 @@ namespace DataViewer
         /// <param name="sliderValue"></param>
         /// <param name="pointList"></param>
         /// <param name="meshBuilder"></param>
-        public static void CreateMeshBuilder(List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, out List<Tuple<string, Point3D>> pointList, out MeshBuilder meshBuilder)
+        public static void CreateMeshBuilder(List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, out List<Tuple<string, Point3D>> pointList, out MeshBuilder meshBuilder, bool isSimplified = false)
         {
             Tuple<double, string, double[]> data;
             Point3D previousPoint;
@@ -27,18 +27,20 @@ namespace DataViewer
             {
                 data = dataList[(offset + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i];
                 pointList.Add(new Tuple<string, Point3D>(data.Item2, new Point3D(data.Item3[0], data.Item3[1], data.Item3[2])));
-                meshBuilder.AddSphere(pointList[i].Item2, 0.05);
-                if (pointList[i].Item1 != "pelvis")
-                {
-                    if (pointList[i - 1].Item1.Contains("end:"))
+                if (!isSimplified || Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[i])) {
+                    meshBuilder.AddSphere(pointList[i].Item2, 0.05);
+                    if (pointList[i].Item1 != "pelvis")
                     {
-                        previousPoint = pointList[Array.IndexOf(Constant.JOINTNAMES, pointList[i - 1].Item1.Split(":")[1])].Item2;
+                        if (pointList[i - 1].Item1.Contains("end:"))
+                        {
+                            previousPoint = pointList[Array.IndexOf(Constant.JOINTNAMES, pointList[i - 1].Item1.Split(":")[1])].Item2;
+                        }
+                        else
+                        {
+                            previousPoint = pointList[i - 1].Item2;
+                        }
+                        meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.025);
                     }
-                    else
-                    {
-                        previousPoint = pointList[i - 1].Item2;
-                    }
-                    meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.025);
                 }
             }
         }

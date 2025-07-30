@@ -22,10 +22,13 @@ namespace DataViewer
     public partial class AnalysisViewer : Page
     {
         List<Tuple<double, string, double[]>> postureDataList = new List<Tuple<double, string, double[]>>();
-        List<Tuple<double, string, double[]>> _postureDataList = new List<Tuple<double, string, double[]>>();
+        List<Tuple<double, string, double[]>> postureDataList_A = new List<Tuple<double, string, double[]>>();
+        List<Tuple<double, string, double[]>> postureDataList_B = new List<Tuple<double, string, double[]>>();
         List<double[]> footPressureDataList = new List<double[]>();
-        List<double[]> _footPressureDataList = new List<double[]>();
+        List<double[]> footPressureDataList_A = new List<double[]>();
+        List<double[]> footPressureDataList_B = new List<double[]>();
 
+        bool isReverse = false;
         public AnalysisViewer()
         {
             InitializeComponent();
@@ -53,22 +56,13 @@ namespace DataViewer
                     postureDataList = new List<Tuple<double, string, double[]>>();
                     footPressureDataList = new List<double[]>();
 
-                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_A_")).ToArray(), out _postureDataList, out _footPressureDataList);
-                    postureDataList.AddRange(_postureDataList);
-                    footPressureDataList.AddRange(_footPressureDataList);
+                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_")).ToArray(), out postureDataList, out footPressureDataList);
                     
-                    FileOperation.GetMeanValues(files.Where(path => path.Contains("_AllTurns_B_")).ToArray(), out _postureDataList, out _footPressureDataList);
-
-                    if (postureDataList[0].Item3[0] < _postureDataList[0].Item3[0])
-                    {
-                        postureDataList.InsertRange(0, _postureDataList);
-                        footPressureDataList.InsertRange(0, _footPressureDataList);
-                    }
-                    else
-                    {
-                        postureDataList.AddRange(_postureDataList);
-                        footPressureDataList.AddRange(_footPressureDataList);
-                    }
+                    isReverse = postureDataList[0].Item3[0] < postureDataList[Constant.BODYPARTS_POSTURE].Item3[0];
+                    postureDataList_A = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(files.Where(path => path.Contains("_AllTurns_A_Posture")).First(), ".csv");
+                    postureDataList_B = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(files.Where(path => path.Contains("_AllTurns_B_Posture")).First(), ".csv");
+                    footPressureDataList_A = (List<double[]>)FileOperation.ReadAllFrames(files.Where(path => path.Contains("_AllTurns_A_FootPressure")).First(), ".csv");
+                    footPressureDataList_B = (List<double[]>)FileOperation.ReadAllFrames(files.Where(path => path.Contains("_AllTurns_B_FootPressure")).First(), ".csv");
 
                     FolderPath.Text = folderPath;
                 }
@@ -149,8 +143,9 @@ namespace DataViewer
             if (postureDataList.Count / Constant.BODYPARTS_POSTURE > 1)
             {
                 MeshBuilder meshBuilder = new MeshBuilder();
+                List<Tuple<double, string, double[]>> dataList = isRightTurn ^ isReverse ? postureDataList_B : postureDataList_A;
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
-                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isRightTurn), out pointList, out meshBuilder);
+                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isRightTurn ^ isReverse), out pointList, out meshBuilder, true);
                 double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
 
                 Right_Position.Value = Math.Max(feetXPosition, 0);
@@ -182,13 +177,24 @@ namespace DataViewer
                         meshBuilder.ToMesh(),
                         new DiffuseMaterial(new SolidColorBrush(Colors.Blue)))
                 });
+
+                for (int i = 0; i < dataList.Count / Constant.BODYPARTS_POSTURE; i++)
+                {
+                    DataDisplay.CreateMeshBuilder(dataList, 0, 1 + i, out pointList, out meshBuilder, true);
+                    helixView.Children.Add(new ModelVisual3D
+                    {
+                        Content = new GeometryModel3D(
+                            meshBuilder.ToMesh(),
+                            new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(64, 0, 0, 0))))
+                    });
+                }
             }
 
             if (footPressureDataList.Count > 1)
             {
                 byte colorValue;
                 string[] feets = ["Left", "Right"];
-                double[] pressureValue = footPressureDataList[Convert.ToInt32(isRightTurn)];
+                double[] pressureValue = footPressureDataList[Convert.ToInt32(isRightTurn ^ isReverse)];
                 System.Windows.Shapes.Path path;
                 Label label;
                 Ellipse ellipse;

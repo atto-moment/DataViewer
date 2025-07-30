@@ -320,7 +320,7 @@ namespace DataViewer
         }
 
         /// <summary>
-        /// 
+        /// Save a screenshot
         /// </summary>
         /// <param name="path"></param>
         /// <param name="element"></param>
@@ -345,7 +345,7 @@ namespace DataViewer
         }
 
         /// <summary>
-        /// 
+        /// Write a DAT file for keeping offset settings
         /// </summary>
         /// <param name="path"></param>
         /// <param name="textBox1"></param>

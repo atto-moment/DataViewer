@@ -15,7 +15,15 @@ namespace DataViewer
             "neck", "head", "r_ear", "end:head:r_ear", "l_ear", "end:head:l_ear", "l_eye", "end:head:l_eye", "r_eye", "end:head:r_eye", "nose", "end:pelvis:nose",
             "l_thigh", "l_shank", "l_foot", "l_toes", "l_toe", "end:l_toes:l_toe", "l_f_b_toe", "end:l_toes:l_f_b_toe", "l_f_m_toe", "end:pelvis",
             "r_thigh", "r_shank", "r_foot", "r_toes", "r_toe", "end:r_toes:r_toe", "r_f_b_toe", "end:r_toes:r_f_b_toe", "r_f_m_toe", "end:" ];
-        
+
+        /// <summary>
+        /// Joint name list (simple version)
+        /// </summary>
+        public static string[] JOINTNAMES_SIMPLE =
+            [ "pelvis", "abdomen", "thorax",
+            "l_clavicle", "l_uarm", "r_clavicle", "r_uarm",
+            "l_thigh", "l_shank", "l_foot", "l_toes", "r_thigh", "r_shank", "r_foot", "r_toes" ];
+
         /// <summary>
         /// Body parts count of posture data
         /// </summary>
