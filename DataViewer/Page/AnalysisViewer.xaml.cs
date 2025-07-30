@@ -70,6 +70,7 @@ namespace DataViewer
                 {
                     FolderPath.Text = "(Loading File Failure)";
                 }
+                LeftTurn.IsChecked = true;
                 RadioButtonChecked(LeftTurn, new RoutedEventArgs());
             }
         }

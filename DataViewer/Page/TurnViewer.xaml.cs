@@ -57,6 +57,7 @@ namespace DataViewer
                 }
             }
             Slider.Maximum = Math.Max(postureDataList.Count / Constant.BODYPARTS_POSTURE, footPressureDataList.Count);
+            Slider.Value = 1;
             SliderValueChanged(Slider, new RoutedPropertyChangedEventArgs<double>(1, 1));
         }
 
