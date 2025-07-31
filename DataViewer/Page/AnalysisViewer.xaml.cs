@@ -107,12 +107,21 @@ namespace DataViewer
                 if (clickedButton.Name.Contains("CSV"))
                 {
                     if (postureDataList.Count > 0)
-                    {                        
-                        FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                    {
+                        //FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
                     }
                     if (footPressureDataList.Count > 0)
                     {
-                        FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                        //FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                    }
+
+                    if (isReverse)
+                    {
+                        FileOperation.GetVarianceValues(postureDataList_A, postureDataList.Where(data => postureDataList.IndexOf(data) >= Constant.BODYPARTS_POSTURE).ToList(), footPressureDataList_A, footPressureDataList[1]);
+                    }
+                    else
+                    {
+                        FileOperation.GetVarianceValues(postureDataList_A, postureDataList.Where(data => postureDataList.IndexOf(data) < Constant.BODYPARTS_POSTURE).ToList(), footPressureDataList_A, footPressureDataList[0]);
                     }
                 }
                 else if (clickedButton.Name.Contains("PNG"))

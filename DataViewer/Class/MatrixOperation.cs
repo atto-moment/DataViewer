@@ -43,6 +43,11 @@ namespace DataViewer
             }
         }
 
+        public static double[] Difference(double[] A, double[] B)
+        {
+            return Sum(A, Product(B, -1));
+        }
+
         public static double[][] Product(double[][] A, double[][] B)
         {
             double[][] C = new double[A.Length][];
@@ -66,6 +71,21 @@ namespace DataViewer
             {  
                 throw new ArgumentException();
             }
+        }
+
+        public static double[] Product(double[] A, double x)
+        {
+            double[] C = new double[A.Length];
+            for (int i = 0; i < A.Length; i++)
+            {
+                C[i] = A[i] * x;
+            }
+            return C;
+        }
+
+        public static double[] Division(double[] A, double x)
+        {
+            return Product(A, 1.0 / x);
         }
 
         public static double[][] Transpose(double[][] A)
@@ -94,11 +114,16 @@ namespace DataViewer
             return Product(Product(rotationX, rotationY), rotationZ);
         }
 
-        public static double[] Division(double[] A, double x) {
+        public static double[] Pow(double[] A, double x)
+        {
             double[] C = new double[A.Length];
             for (int i = 0; i < A.Length; i++)
             {
-                C[i] = A[i] / x;
+                C[i] = 1;
+                for (int j = 0; j < x; j++)
+                {
+                    C[i] = C[i] * A[i];
+                }
             }
             return C;
         }

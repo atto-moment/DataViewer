@@ -141,6 +141,47 @@ namespace DataViewer
             }
         }
 
+        public static void GetVarianceValues(List<Tuple<double, string, double[]>> postureDataList, List<Tuple<double, string, double[]>> meanOfPostureData, List<double[]> footPressureDataList, double[] meanOfFootPressureData)
+        {
+            double[][] variance_Posture = new double[Constant.BODYPARTS_POSTURE][];
+            double[] variance_FootPressure = new double[Constant.DIMENTIONS_FOOTPRESSURE];
+            double[] values;
+            
+            for (int i = 0; i < postureDataList.Count / Constant.BODYPARTS_POSTURE; i++)
+            {
+                for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
+                {
+                    values = MatrixOperation.Difference(postureDataList[i * Constant.BODYPARTS_POSTURE + j].Item3, meanOfPostureData[j].Item3);
+                    if (variance_Posture[j] == null)
+                    {
+                        variance_Posture[j] = new double[Constant.DIMENTIONS_POSTURE];
+                        variance_Posture[j] = MatrixOperation.Pow(values, 2);
+                    }
+                    else
+                    {
+                        variance_Posture[j] = MatrixOperation.Sum(variance_Posture[j], MatrixOperation.Pow(values, 2));
+                    }
+                }
+                values = new double[Constant.DIMENTIONS_FOOTPRESSURE];
+                values = MatrixOperation.Difference(footPressureDataList[i], meanOfFootPressureData);
+                if (variance_FootPressure == null)
+                {
+                    variance_FootPressure = new double[Constant.DIMENTIONS_POSTURE];
+                    variance_FootPressure = MatrixOperation.Pow(values, 2);
+                }
+                else
+                {
+                    variance_FootPressure = MatrixOperation.Sum(variance_FootPressure, MatrixOperation.Pow(values, 2));
+                }
+            }
+
+            for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
+            {
+                variance_Posture[i] = MatrixOperation.Division(variance_Posture[i], postureDataList.Count / Constant.BODYPARTS_POSTURE);
+            }
+            variance_FootPressure = MatrixOperation.Division(variance_FootPressure, footPressureDataList.Count);
+        }
+
         /// <summary>
         /// Read a BVH file
         /// </summary>
