@@ -3,11 +3,13 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
@@ -27,6 +29,8 @@ namespace DataViewer
         List<double[]> footPressureDataList = new List<double[]>();
         List<double[]> footPressureDataList_A = new List<double[]>();
         List<double[]> footPressureDataList_B = new List<double[]>();
+        double[] euclideanDistanceValues;
+        int[] indexes;
 
         bool isReverse = false;
         public AnalysisViewer()
@@ -114,15 +118,6 @@ namespace DataViewer
                     {
                         //FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
                     }
-
-                    if (isReverse)
-                    {
-                        FileOperation.GetVarianceValues(postureDataList_A, postureDataList.Where(data => postureDataList.IndexOf(data) >= Constant.BODYPARTS_POSTURE).ToList(), footPressureDataList_A, footPressureDataList[1]);
-                    }
-                    else
-                    {
-                        FileOperation.GetVarianceValues(postureDataList_A, postureDataList.Where(data => postureDataList.IndexOf(data) < Constant.BODYPARTS_POSTURE).ToList(), footPressureDataList_A, footPressureDataList[0]);
-                    }
                 }
                 else if (clickedButton.Name.Contains("PNG"))
                 {
@@ -148,6 +143,7 @@ namespace DataViewer
         private void RadioButtonChecked(object sender, RoutedEventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
+            Label label;
             bool isRightTurn = radioButton.Name == "RightTurn";
 
             if (postureDataList.Count / Constant.BODYPARTS_POSTURE > 1)
@@ -155,7 +151,11 @@ namespace DataViewer
                 MeshBuilder meshBuilder = new MeshBuilder();
                 List<Tuple<double, string, double[]>> dataList = isRightTurn ^ isReverse ? postureDataList_B : postureDataList_A;
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
-                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isRightTurn ^ isReverse), out pointList, out meshBuilder, true);
+                FileOperation.GetEuclideanDistanceValues(dataList, 
+                    postureDataList.Where(data =>
+                    isRightTurn ^ isReverse ? postureDataList.IndexOf(data) >= Constant.BODYPARTS_POSTURE : postureDataList.IndexOf(data) < Constant.BODYPARTS_POSTURE).ToList(),
+                    out euclideanDistanceValues, out indexes);
+                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isRightTurn ^ isReverse), out pointList, out meshBuilder, true, euclideanDistanceValues);
                 double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
 
                 Right_Position.Value = Math.Max(feetXPosition, 0);
@@ -188,6 +188,15 @@ namespace DataViewer
                         new DiffuseMaterial(new SolidColorBrush(Colors.Blue)))
                 });
 
+                MPJPE.Content = euclideanDistanceValues.Sum() * 1000 / Constant.JOINTNAMES_SIMPLE.Length;
+                DataDisplay.CreateColoredPoints(pointList, euclideanDistanceValues, indexes, out meshBuilder);
+                helixView.Children.Add(new ModelVisual3D
+                {
+                    Content = new GeometryModel3D(
+                        meshBuilder.ToMesh(),
+                        new DiffuseMaterial(new SolidColorBrush(Colors.Red)))
+                });
+
                 for (int i = 0; i < dataList.Count / Constant.BODYPARTS_POSTURE; i++)
                 {
                     DataDisplay.CreateMeshBuilder(dataList, 0, 1 + i, out pointList, out meshBuilder, true);
@@ -206,7 +215,6 @@ namespace DataViewer
                 string[] feets = ["Left", "Right"];
                 double[] pressureValue = footPressureDataList[Convert.ToInt32(isRightTurn ^ isReverse)];
                 System.Windows.Shapes.Path path;
-                Label label;
                 Ellipse ellipse;
                 ProgressBar progressBar;
                 for (int i = 0; i < 2; i++)

@@ -17,7 +17,7 @@ namespace DataViewer
         /// <param name="sliderValue"></param>
         /// <param name="pointList"></param>
         /// <param name="meshBuilder"></param>
-        public static void CreateMeshBuilder(List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, out List<Tuple<string, Point3D>> pointList, out MeshBuilder meshBuilder, bool isSimplified = false)
+        public static void CreateMeshBuilder(List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, out List<Tuple<string, Point3D>> pointList, out MeshBuilder meshBuilder, bool isSimplified = false, double[] euclideanDistanceValues = null)
         {
             Tuple<double, string, double[]> data;
             Point3D previousPoint;
@@ -28,7 +28,7 @@ namespace DataViewer
                 data = dataList[(offset + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i];
                 pointList.Add(new Tuple<string, Point3D>(data.Item2, new Point3D(data.Item3[0], data.Item3[1], data.Item3[2])));
                 if (!isSimplified || Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[i])) {
-                    meshBuilder.AddSphere(pointList[i].Item2, 0.05);
+                    meshBuilder.AddSphere(pointList[i].Item2, euclideanDistanceValues == null ? 0.05 : euclideanDistanceValues[i]);
                     if (pointList[i].Item1 != "pelvis")
                     {
                         if (pointList[i - 1].Item1.Contains("end:"))
@@ -39,9 +39,17 @@ namespace DataViewer
                         {
                             previousPoint = pointList[i - 1].Item2;
                         }
-                        meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.025);
+                        meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.02);
                     }
                 }
+            }
+        }
+
+        public static void CreateColoredPoints(List<Tuple<string, Point3D>> pointList, double[] euclideanDistanceValues, int[] indexes, out MeshBuilder meshBuilder)
+        {
+            meshBuilder = new MeshBuilder();
+            for(int i = 0; i < 3; i++){
+                meshBuilder.AddSphere(pointList[indexes[i]].Item2, euclideanDistanceValues[i]);
             }
         }
 
@@ -57,7 +65,7 @@ namespace DataViewer
         {
             return new BillboardTextVisual3D
             {
-                Position = new Point3D(P.Item2.X + margin[0], P.Item2.Y + margin[1], P.Item2.Z + margin[2]),
+                Position = new Point3D(P.Item2.X + margin[0], 2.5 + margin[1], P.Item2.Z + margin[2]),
                 Text = P.Item1 + "\n" + CalculateAngle(P.Item2, Q.Item2).ToString("F1") + " °",
                 FontSize = 20,
                 Foreground = brush == Brushes.White ? Brushes.Black : Brushes.White,
@@ -84,7 +92,7 @@ namespace DataViewer
             Brush brush = new SolidColorBrush(Color.FromRgb(255, (byte)(255 - colorValue), (byte)(255 - colorValue)));
             return new BillboardTextVisual3D
                 {
-                    Position = new Point3D(displayPosition[0], displayPosition[1], displayPosition[2]),
+                    Position = new Point3D(displayPosition[0], 2.5 + displayPosition[1], displayPosition[2]),
                     Text = P1.Item1.Split("_").Last() + "_diff\n" + angleDiff.ToString("F1") + " °",
                     FontSize = 20,
                     Foreground = Brushes.Black,

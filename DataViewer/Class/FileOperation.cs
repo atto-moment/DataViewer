@@ -141,10 +141,10 @@ namespace DataViewer
             }
         }
 
-        public static void GetVarianceValues(List<Tuple<double, string, double[]>> postureDataList, List<Tuple<double, string, double[]>> meanOfPostureData, List<double[]> footPressureDataList, double[] meanOfFootPressureData)
+        public static void GetVarianceValues(List<Tuple<double, string, double[]>> postureDataList, List<Tuple<double, string, double[]>> meanOfPostureData, List<double[]> footPressureDataList, double[] meanOfFootPressureData, out double[][] variance_Posture, out double[] variance_FootPressure)
         {
-            double[][] variance_Posture = new double[Constant.BODYPARTS_POSTURE][];
-            double[] variance_FootPressure = new double[Constant.DIMENTIONS_FOOTPRESSURE];
+            variance_Posture = new double[Constant.BODYPARTS_POSTURE][];
+            variance_FootPressure = new double[Constant.DIMENTIONS_FOOTPRESSURE];
             double[] values;
             
             for (int i = 0; i < postureDataList.Count / Constant.BODYPARTS_POSTURE; i++)
@@ -180,6 +180,25 @@ namespace DataViewer
                 variance_Posture[i] = MatrixOperation.Division(variance_Posture[i], postureDataList.Count / Constant.BODYPARTS_POSTURE);
             }
             variance_FootPressure = MatrixOperation.Division(variance_FootPressure, footPressureDataList.Count);
+        }
+
+        public static void GetEuclideanDistanceValues(List<Tuple<double, string, double[]>> postureDataList, List<Tuple<double, string, double[]>> meanOfPostureData, out double[] euclideanDistanceValues, out int[] indexes)
+        {
+            double value;
+            euclideanDistanceValues =  new double[Constant.BODYPARTS_POSTURE];
+            Array.Fill(euclideanDistanceValues, 0);
+            for (int i = 0; i < postureDataList.Count / Constant.BODYPARTS_POSTURE; i++)
+            {
+                for (int j = 0; j < Constant.BODYPARTS_POSTURE; j++)
+                {
+                    value = MatrixOperation.Norm(MatrixOperation.Difference(postureDataList[i * Constant.BODYPARTS_POSTURE + j].Item3, meanOfPostureData[j].Item3));
+                    euclideanDistanceValues[j] = euclideanDistanceValues[j] + (Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[j]) ? value : 0);
+                }
+            }
+            euclideanDistanceValues = MatrixOperation.Division(euclideanDistanceValues, postureDataList.Count / Constant.BODYPARTS_POSTURE);
+
+            Dictionary<int, double> sorted = euclideanDistanceValues.Select((value, index) => new KeyValuePair<int, double>(index, value)).OrderByDescending(item => item.Value).ToDictionary();
+            indexes = sorted.Keys.ToArray();
         }
 
         /// <summary>

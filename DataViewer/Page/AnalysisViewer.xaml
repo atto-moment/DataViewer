@@ -62,6 +62,12 @@
                     </ht:HelixViewport3D.Camera>
                 </ht:HelixViewport3D>
 
+                <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
+                    <Label Content="MPJPE [mm]:" Foreground="Black"/>
+                    <Label Name="MPJPE" Content="0" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
+                    <Label Content="Unstable Joints (Worst 5):" Foreground="Black"/>
+                </StackPanel>
+
                 <Grid Height="600" Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="0.5*"/>

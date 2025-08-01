@@ -127,5 +127,15 @@ namespace DataViewer
             }
             return C;
         }
+        public static double Norm(double[] A)
+        {
+            double[] C = Pow(A, 2);
+            double x = 0;
+            for (int i = 0; i < C.Length; i++)
+            {
+                x = x + C[i];
+            }
+            return Math.Sqrt(x);
+        }
     }
 }
