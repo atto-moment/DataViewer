@@ -22,7 +22,7 @@ namespace DataViewer
         public static string[] JOINTNAMES_SIMPLE =
             [ "pelvis", "abdomen", "thorax",
             "l_clavicle", "l_uarm", "r_clavicle", "r_uarm",
-            "l_thigh", "l_shank", "l_foot", "l_toes", "r_thigh", "r_shank", "r_foot", "r_toes" ];
+            "l_thigh", "l_shank", "l_foot", "r_thigh", "r_shank", "r_foot" ];
 
         /// <summary>
         /// Body parts count of posture data

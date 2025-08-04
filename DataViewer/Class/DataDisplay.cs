@@ -10,25 +10,43 @@ namespace DataViewer
     public struct DataDisplay
     {
         /// <summary>
-        /// Create a mesh builder from posture data at a specific frame
+        /// Initialize a plot view
         /// </summary>
+        /// <param name="helixView"></param>
+        public static void InitializePlotView(ref HelixViewport3D helixView)
+        {
+            helixView.Children.Clear();
+            helixView.Children.Add(new ModelVisual3D { Content = new AmbientLight { Color = Colors.White } });
+            helixView.Children.Add(new GridLinesVisual3D()
+            {
+                MajorDistance = 5.0,
+                MinorDistance = 0.5,
+                Thickness = 0.01,
+            });
+        }
+
+        /// <summary>
+        /// Create a stick figure
+        /// </summary>
+        /// <param name="helixView"></param>
         /// <param name="dataList"></param>
         /// <param name="offset"></param>
         /// <param name="sliderValue"></param>
+        /// <param name="color"></param>
         /// <param name="pointList"></param>
-        /// <param name="meshBuilder"></param>
-        public static void CreateMeshBuilder(List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, out List<Tuple<string, Point3D>> pointList, out MeshBuilder meshBuilder, bool isSimplified = false, double[] euclideanDistanceValues = null)
+        /// <param name="isSimplified"></param>
+        public static void CreateStickFigure(ref HelixViewport3D helixView, List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, Color color, out List<Tuple<string, Point3D>> pointList, bool isSimplified = false)
         {
             Tuple<double, string, double[]> data;
             Point3D previousPoint;
+            MeshBuilder meshBuilder = new MeshBuilder();
             pointList = new List<Tuple<string, Point3D>>();
-            meshBuilder = new MeshBuilder();
             for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
             {
                 data = dataList[(offset + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i];
                 pointList.Add(new Tuple<string, Point3D>(data.Item2, new Point3D(data.Item3[0], data.Item3[1], data.Item3[2])));
-                if (!isSimplified || Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[i])) {
-                    meshBuilder.AddSphere(pointList[i].Item2, euclideanDistanceValues == null ? 0.05 : euclideanDistanceValues[i]);
+                if (!isSimplified || Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[i]))
+                {
                     if (pointList[i].Item1 != "pelvis")
                     {
                         if (pointList[i - 1].Item1.Contains("end:"))
@@ -43,14 +61,31 @@ namespace DataViewer
                     }
                 }
             }
+            helixView.Children.Add(new ModelVisual3D
+            {
+                Content = new GeometryModel3D(
+                    meshBuilder.ToMesh(),
+                    new DiffuseMaterial(new SolidColorBrush(color)))
+            });
         }
 
-        public static void CreateColoredPoints(List<Tuple<string, Point3D>> pointList, double[] euclideanDistanceValues, int[] indexes, out MeshBuilder meshBuilder)
-        {
-            meshBuilder = new MeshBuilder();
-            for(int i = 0; i < 3; i++){
-                meshBuilder.AddSphere(pointList[indexes[i]].Item2, euclideanDistanceValues[i]);
-            }
+        /// <summary>
+        /// Create angle labels
+        /// </summary>
+        /// <param name="helixView"></param>
+        /// <param name="pointList"></param>
+        public static void CreateAngleLabels(ref HelixViewport3D helixView, List<Tuple<string, Point3D>> pointList) {
+            helixView.Children.Add(CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, -5], Brushes.White));
+            helixView.Children.Add(CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
+            helixView.Children.Add(CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
+            helixView.Children.Add(CreateAngleDiffLabel(
+                pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
+                pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
+                [0, 0, -2.5]));
+            helixView.Children.Add(CreateAngleDiffLabel(
+                pointList[Array.IndexOf(Constant.JOINTNAMES, "l_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                pointList[Array.IndexOf(Constant.JOINTNAMES, "r_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
+                [0, 0, 2.5]));
         }
 
         /// <summary>
@@ -115,6 +150,47 @@ namespace DataViewer
             double x = (B[0] - A[0]) * (C[0] - A[0]) + (B[1] - A[1]) * (C[1] - A[1]);
             double y = Math.Sqrt(Math.Pow(B[0] - A[0], 2) + Math.Pow(B[1] - A[1], 2)) * Math.Sqrt(Math.Pow(C[0] - A[0], 2) + Math.Pow(C[1] - A[1], 2));
             return x * 180 / y / Math.PI;
+        }
+
+        /// <summary>
+        /// Create joint points
+        /// </summary>
+        /// <param name="helixView"></param>
+        /// <param name="pointList"></param>
+        /// <param name="euclideanDistanceValues"></param>
+        /// <param name="indexes"></param>
+        /// <param name="isSimplified"></param>
+        public static void CreateJointPoints(ref HelixViewport3D helixView, List<Tuple<string, Point3D>> pointList, double[] euclideanDistanceValues = null, int[] indexes = null, bool isSimplified = false)
+        {
+            MeshBuilder meshBuilder_Red = new MeshBuilder();
+            MeshBuilder meshBuilder_Blue = new MeshBuilder();
+
+            if (indexes != null)
+            {
+                for (int i = 0; i < indexes.Length; i++)
+                {
+                    meshBuilder_Red.AddSphere(pointList[indexes[i]].Item2, euclideanDistanceValues[indexes[i]]);
+                }
+                helixView.Children.Add(new ModelVisual3D
+                {
+                    Content = new GeometryModel3D(
+                        meshBuilder_Red.ToMesh(),
+                        new DiffuseMaterial(new SolidColorBrush(Colors.Red)))
+                });
+            }
+            for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
+            {
+                if ((!isSimplified || Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[i])) && indexes == null ? true : !indexes.Contains(i))
+                {
+                    meshBuilder_Blue.AddSphere(pointList[i].Item2, euclideanDistanceValues == null ? 0.05 : euclideanDistanceValues[i]);
+                }
+            }
+            helixView.Children.Add(new ModelVisual3D
+            {
+                Content = new GeometryModel3D(
+                    meshBuilder_Blue.ToMesh(),
+                    new DiffuseMaterial(new SolidColorBrush(Colors.Blue)))
+            });
         }
 
         /// <summary>

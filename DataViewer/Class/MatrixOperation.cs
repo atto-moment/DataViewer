@@ -127,6 +127,7 @@ namespace DataViewer
             }
             return C;
         }
+
         public static double Norm(double[] A)
         {
             double[] C = Pow(A, 2);

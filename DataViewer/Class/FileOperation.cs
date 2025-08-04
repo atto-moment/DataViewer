@@ -199,6 +199,7 @@ namespace DataViewer
 
             Dictionary<int, double> sorted = euclideanDistanceValues.Select((value, index) => new KeyValuePair<int, double>(index, value)).OrderByDescending(item => item.Value).ToDictionary();
             indexes = sorted.Keys.ToArray();
+            Array.Resize(ref indexes, 5);
         }
 
         /// <summary>

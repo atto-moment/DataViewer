@@ -287,40 +287,18 @@ namespace DataViewer
 
             if (sliderValue + frameOffset_Posture < frameCount_Posture)
             {
+                double feetXPosition;
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
-                MeshBuilder meshBuilder = new MeshBuilder();
-                DataDisplay.CreateMeshBuilder(postureDataList, frameOffset_Posture, sliderValue, out pointList, out meshBuilder);
 
-                double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;                
+                DataDisplay.InitializePlotView(ref helixView);
+                DataDisplay.CreateStickFigure(ref helixView, postureDataList, frameOffset_Posture, sliderValue, Colors.Blue, out pointList);
+                DataDisplay.CreateAngleLabels(ref helixView, pointList);
+                DataDisplay.CreateJointPoints(ref helixView, pointList);
+
+                feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");
-
-                helixView.Children.Clear();
-                helixView.Children.Add(new ModelVisual3D { Content = new AmbientLight { Color = Colors.White} });
-                helixView.Children.Add(new GridLinesVisual3D()
-                {
-                    MajorDistance = 5.0,
-                    MinorDistance = 0.5,
-                    Thickness = 0.01,
-                });
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, -5], Brushes.White));
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
-                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
-                    [0, 0, -2.5]));
-                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
-                    [0, 0, 2.5]));
-                helixView.Children.Add(new ModelVisual3D
-                {
-                    Content = new GeometryModel3D(
-                        meshBuilder.ToMesh(),
-                        new DiffuseMaterial(new SolidColorBrush(Colors.Blue)))
-                });
             }
 
             if (correctedSliderValue + frameOffset_FootPressure < frameCount_FootPressure)

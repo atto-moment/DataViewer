@@ -112,11 +112,11 @@ namespace DataViewer
                 {
                     if (postureDataList.Count > 0)
                     {
-                        //FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
+                        FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_Posture.csv", postureDataList, 0, postureDataList.Count);
                     }
                     if (footPressureDataList.Count > 0)
                     {
-                        //FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
+                        FileOperation.WriteCSVFile(path + "_MeanOfAllTurns_FootPressure.csv", footPressureDataList, 0, footPressureDataList.Count);
                     }
                 }
                 else if (clickedButton.Name.Contains("PNG"))
@@ -148,64 +148,28 @@ namespace DataViewer
 
             if (postureDataList.Count / Constant.BODYPARTS_POSTURE > 1)
             {
-                MeshBuilder meshBuilder = new MeshBuilder();
+                double feetXPosition;
                 List<Tuple<double, string, double[]>> dataList = isRightTurn ^ isReverse ? postureDataList_B : postureDataList_A;
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
+
                 FileOperation.GetEuclideanDistanceValues(dataList, 
                     postureDataList.Where(data =>
                     isRightTurn ^ isReverse ? postureDataList.IndexOf(data) >= Constant.BODYPARTS_POSTURE : postureDataList.IndexOf(data) < Constant.BODYPARTS_POSTURE).ToList(),
                     out euclideanDistanceValues, out indexes);
-                DataDisplay.CreateMeshBuilder(postureDataList, 0, 1 + Convert.ToInt32(isRightTurn ^ isReverse), out pointList, out meshBuilder, true, euclideanDistanceValues);
-                double feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
+                DataDisplay.InitializePlotView(ref helixView);
+                DataDisplay.CreateStickFigure(ref helixView, postureDataList, 0, 1 + Convert.ToInt32(isRightTurn ^ isReverse), Colors.Blue, out pointList, true);
+                DataDisplay.CreateAngleLabels(ref helixView, pointList);
+                DataDisplay.CreateJointPoints(ref helixView, pointList, euclideanDistanceValues, indexes, true);
 
+                feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");
 
-                helixView.Children.Clear();
-                helixView.Children.Add(new ModelVisual3D { Content = new AmbientLight { Color = Colors.White } });
-                helixView.Children.Add(new GridLinesVisual3D()
-                {
-                    MajorDistance = 5.0,
-                    MinorDistance = 0.5,
-                    Thickness = 0.01,
-                });
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")], pointList[Array.IndexOf(Constant.JOINTNAMES, "pelvis")], [0, 0, -5], Brushes.White));
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")], [-2.5, 0, 0], Brushes.Red));
-                helixView.Children.Add(DataDisplay.CreateAngleLabel(pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")], [2.5, 0, 0], Brushes.Blue));
-                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")],
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_shank")], pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")],
-                    [0, 0, -2.5]));
-                helixView.Children.Add(DataDisplay.CreateAngleDiffLabel(
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "l_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
-                    pointList[Array.IndexOf(Constant.JOINTNAMES, "r_uarm")], pointList[Array.IndexOf(Constant.JOINTNAMES, "thorax")],
-                    [0, 0, 2.5]));
-                helixView.Children.Add(new ModelVisual3D
-                {
-                    Content = new GeometryModel3D(
-                        meshBuilder.ToMesh(),
-                        new DiffuseMaterial(new SolidColorBrush(Colors.Blue)))
-                });
-
                 MPJPE.Content = euclideanDistanceValues.Sum() * 1000 / Constant.JOINTNAMES_SIMPLE.Length;
-                DataDisplay.CreateColoredPoints(pointList, euclideanDistanceValues, indexes, out meshBuilder);
-                helixView.Children.Add(new ModelVisual3D
-                {
-                    Content = new GeometryModel3D(
-                        meshBuilder.ToMesh(),
-                        new DiffuseMaterial(new SolidColorBrush(Colors.Red)))
-                });
-
                 for (int i = 0; i < dataList.Count / Constant.BODYPARTS_POSTURE; i++)
                 {
-                    DataDisplay.CreateMeshBuilder(dataList, 0, 1 + i, out pointList, out meshBuilder, true);
-                    helixView.Children.Add(new ModelVisual3D
-                    {
-                        Content = new GeometryModel3D(
-                            meshBuilder.ToMesh(),
-                            new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(64, 0, 0, 0))))
-                    });
+                    DataDisplay.CreateStickFigure(ref helixView, dataList, 0, 1 + i, Color.FromArgb(64, 0, 0, 0), out pointList, true);
                 }
             }
 
