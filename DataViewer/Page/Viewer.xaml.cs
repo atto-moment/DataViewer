@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DataViewer
 {
@@ -452,6 +453,115 @@ namespace DataViewer
                 }
             }
 
+        }
+        private void SetFrameOffset(object sender, RoutedEventArgs e)
+        {
+            int offset = 2425;
+            int maximumFrame = 6040;
+            double[] x = new double[postureDataList.Count / Constant.BODYPARTS_POSTURE];
+            double[] y = new double[postureDataList.Count / Constant.BODYPARTS_POSTURE];
+            double previousX;
+            double peakX = 0;
+            int index = offset;
+            double displacement = 0;
+            bool isLeftTurn = false;
+            List<int> TurnIndexList = new List<int>();
+            List<int> TurnIndexList2 = new List<int>();
+
+
+            for (int i = 0; i < postureDataList.Count / Constant.BODYPARTS_POSTURE; i++)
+            {
+                x[i] = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0]
+                    + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
+
+                if (Math.Round(i * double.Parse(FrameRateRatio.Text)) < footPressureDataList.Count){
+                    y[i] = (footPressureDataList[(int)Math.Round(i * double.Parse(FrameRateRatio.Text))][Array.IndexOf(Constant.HEADER_FOOTPRESSURE, "left angular X[dps]")]
+                        - footPressureDataList[(int)Math.Round(i * double.Parse(FrameRateRatio.Text))][Array.IndexOf(Constant.HEADER_FOOTPRESSURE, "right angular X[dps]")]) / 2.0;
+                }
+            }
+
+            for (int i = offset; i < maximumFrame; i++)
+            {
+                previousX = x[i - 1];
+                if (i < offset + 4)
+                {
+                    displacement = displacement + (x[i] - previousX);
+                }
+                else if (i == offset + 4)
+                {
+                    isLeftTurn = displacement > 0;
+                }
+                else
+                {
+                    peakX = isLeftTurn ? Math.Max(x[i], peakX) : Math.Min(x[i], peakX);
+                    if (peakX == x[i])
+                    {
+                        index = i;
+                    }
+                    else
+                    {
+                        if (Math.Abs(peakX - x[i]) > 0.3)
+                        {
+                            isLeftTurn = !isLeftTurn;
+                            TurnIndexList.Add(index);
+                        }
+                    }
+                }
+            }
+
+            offset = (int)Math.Round(offset * double.Parse(FrameRateRatio.Text));
+            maximumFrame = (int)Math.Round(maximumFrame * double.Parse(FrameRateRatio.Text));
+            index = offset;
+
+            for (int i = offset; i < maximumFrame; i++)
+            {
+                previousX = y[i - 1];
+                if (i < offset + 4)
+                {
+                    displacement = displacement + (y[i] - previousX);
+                }
+                else if (i == offset + 4)
+                {
+                    isLeftTurn = displacement > 0;
+                }
+                else
+                {
+                    peakX = isLeftTurn ? Math.Min(y[i], peakX) : Math.Max(y[i], peakX);
+                    if (peakX == y[i])
+                    {
+                        index = i;
+                    }
+                    else
+                    {
+                        if (Math.Abs(peakX - y[i]) > 40)
+                        {
+                            isLeftTurn = !isLeftTurn;
+                            TurnIndexList2.Add(index);
+                        }
+                    }
+                }
+            }
+
+            int[] a = TurnIndexList.Select((item) => item - TurnIndexList[0]).ToArray();
+            int[] b = TurnIndexList2.Select((item) => item - TurnIndexList2[0]).ToArray();
+            double[] c = new double[10];
+            double[] d = new double[10];
+            Array.Fill(c, 0);
+            Array.Fill(d, 0);
+            for(int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 30; j++)
+                {
+                    c[i] = c[i] + Math.Pow(a[j] - b[j + i], 2);
+                }
+            }
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 30; j++)
+                {
+                    d[i] = d[i] + Math.Pow(a[j + i] - b[j], 2);
+                }
+            }
         }
     }
 }
