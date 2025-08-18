@@ -98,7 +98,7 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="5">
-                <Button Height="30" Width="120" Content="Set Offset" Click="SetFrameOffset"/>
+                <!-- <Button Height="30" Width="120" Content="Set Offset" Click="SetFrameOffset"/> -->
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row="1" Grid.Column="5">
@@ -373,7 +373,7 @@
             <!--Player-->
             <StackPanel Orientation="Horizontal" Grid.Column="0">
                 <TextBox x:Name="Frame" Margin="20,0,0,0" Height="30" Width="75" Text ="{Binding ElementName=Slider, Path=Value}" TextChanged="NumericTextChanged" IsEnabled="False"/>
-                <Label Content="frame of" Margin="20,0,0,0"/>
+                <Label Content="th frame out of" Margin="20,0,0,0"/>
                 <TextBox x:Name="Frames" Margin="20,0,0,0" Height="30" Width="75" Text="{Binding ElementName=Slider, Path=Maximum}" TextChanged="NumericTextChanged" IsEnabled="False"/>
                 <Label Content="frames" Margin="20,0,0,0"/>
             </StackPanel>
