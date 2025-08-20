@@ -5,6 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DataViewer"
         mc:Ignorable="d"
-        ResizeMode="NoResize"
-        Title="Data Viewer" Height="1040" Width="1920" Margin="0" ThemeMode="System">
+        ResizeMode="CanResize"
+        Title="Data Viewer" Height="1040" Width="1920" Margin="0" ThemeMode="System" SizeChanged="WindowSizeChanged">
 </NavigationWindow>

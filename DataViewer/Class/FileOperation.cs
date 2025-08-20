@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Windows;
 using System.Windows.Controls;
@@ -200,6 +201,72 @@ namespace DataViewer
             Dictionary<int, double> sorted = euclideanDistanceValues.Select((value, index) => new KeyValuePair<int, double>(index, value)).OrderByDescending(item => item.Value).ToDictionary();
             indexes = sorted.Keys.ToArray();
             Array.Resize(ref indexes, 5);
+        }
+
+        public static double[] GetFeetXPositions(List<Tuple<double, string, double[]>> postureDataList)
+        {
+            double[] feetXPositions = new double[postureDataList.Count / Constant.BODYPARTS_POSTURE];
+            for (int i = 0; i < postureDataList.Count / Constant.BODYPARTS_POSTURE; i++)
+            {
+                feetXPositions[i] = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0]
+                    + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
+            }
+            return feetXPositions;
+        }
+        public static double[] GetFeetXAngulars(List<double[]> footPressureDataList)
+        {
+            double[] feetXAngulars = new double[footPressureDataList.Count];
+            for (int i = 0; i < footPressureDataList.Count; i++)
+            {
+                feetXAngulars[i] = (footPressureDataList[i][Array.IndexOf(Constant.HEADER_FOOTPRESSURE, "left angular X[dps]")]
+                    - footPressureDataList[i][Array.IndexOf(Constant.HEADER_FOOTPRESSURE, "right angular X[dps]")]) / 2.0;
+            }
+            return feetXAngulars;
+        }
+
+        public static List<int> GetPeakValueIndexes(double[] dataList, int offset, int maximumFrame, double threshold, bool isReverse = false)
+        {
+            bool isLeftTurn = false;
+            double currentValue = 0;
+            double previousValue;
+            double peakValue = 0;
+            double difference = 0;
+            int index = offset;
+            List<int> TurnIndexList = new List<int>();
+
+            for (int i = offset; i < maximumFrame; i++)
+            {
+                previousValue = currentValue;
+                currentValue = dataList[i];
+                if (i > 0)
+                {
+                    if (i < offset + 4)
+                    {
+                        difference = difference + (currentValue - previousValue);
+                    }
+                    else if (i == offset + 4)
+                    {
+                        isLeftTurn = difference > 0;
+                    }
+                    else
+                    {
+                        peakValue = isLeftTurn ^ isReverse ? Math.Max(currentValue, peakValue) : Math.Min(currentValue, peakValue);
+                        if (peakValue == currentValue)
+                        {
+                            index = i;
+                        }
+                        else
+                        {
+                            if (Math.Abs(peakValue - currentValue) > threshold)
+                            {
+                                isLeftTurn = !isLeftTurn;
+                                TurnIndexList.Add(index);
+                            }
+                        }
+                    }
+                }
+            }
+            return TurnIndexList;
         }
 
         /// <summary>

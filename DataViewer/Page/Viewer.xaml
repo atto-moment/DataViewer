@@ -7,8 +7,8 @@
       xmlns:ht="http://helix-toolkit.org/wpf"
       mc:Ignorable="d" 
       d:DesignHeight="1020" d:DesignWidth="1920" Title="Viewer">
-
-    <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Height="1020" Width="1920">
+    <Viewbox>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Height="1020" Width="1920">
         <Grid.RowDefinitions>
             <RowDefinition Height="0.9*"/>
             <RowDefinition Height="6*"/>
@@ -81,20 +81,20 @@
             <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="4">
                 <Label Content="FrameOffset" Width="75"/>
                 <Label Content=":" Margin="0,0,10,0"/>
-                <Button x:Name="MinusMinus_Posture" Height="30" Width="30" Content="&#xAB;" Click="SetOffset" Tag="-10"/>
-                <Button x:Name="Minus_Posture" Height="30" Width="30" Content="&#x2039;" Click="SetOffset" Tag="-1"/>
+                <Button x:Name="MinusMinus_Posture" Height="30" Width="30" Content="&#xAB;" Click="ChangeOffset" Tag="-10"/>
+                <Button x:Name="Minus_Posture" Height="30" Width="30" Content="&#x2039;" Click="ChangeOffset" Tag="-1"/>
                 <TextBox x:Name="FrameOffset_Posture" Height="30" Width="75" Text ="0" TextChanged="NumericTextChanged" IsEnabled="False"/>
-                <Button x:Name="Plus_Posture" Height="30" Width="30" Content="&#x203A;" Click="SetOffset" Tag="1"/>
-                <Button x:Name="PlusPlus_Posture" Height="30" Width="30" Content="&#xBB;" Click="SetOffset" Tag="10"/>
+                <Button x:Name="Plus_Posture" Height="30" Width="30" Content="&#x203A;" Click="ChangeOffset" Tag="1"/>
+                <Button x:Name="PlusPlus_Posture" Height="30" Width="30" Content="&#xBB;" Click="ChangeOffset" Tag="10"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row="1" Grid.Column="4">
                 <Label Content=":" Margin="75,0,10,0"/>
-                <Button x:Name="MinusMinus_FootPressure" Height="30" Width="30" Content="&#xAB;" Click="SetOffset" Tag="-10"/>
-                <Button x:Name="Minus_FootPressure" Height="30" Width="30" Content="&#x2039;" Click="SetOffset" Tag="-1"/>
+                <Button x:Name="MinusMinus_FootPressure" Height="30" Width="30" Content="&#xAB;" Click="ChangeOffset" Tag="-10"/>
+                <Button x:Name="Minus_FootPressure" Height="30" Width="30" Content="&#x2039;" Click="ChangeOffset" Tag="-1"/>
                 <TextBox x:Name="FrameOffset_FootPressure" Height="30" Width="75" Text ="0" TextChanged="NumericTextChanged" IsEnabled="False"/>
-                <Button x:Name="Plus_FootPressure" Height="30" Width="30" Content="&#x203A;" Click="SetOffset" Tag="1"/>
-                <Button x:Name="PlusPlus_FootPressure" Height="30" Width="30" Content="&#xBB;" Click="SetOffset" Tag="10"/>
+                <Button x:Name="Plus_FootPressure" Height="30" Width="30" Content="&#x203A;" Click="ChangeOffset" Tag="1"/>
+                <Button x:Name="PlusPlus_FootPressure" Height="30" Width="30" Content="&#xBB;" Click="ChangeOffset" Tag="10"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="5">
@@ -461,4 +461,5 @@
         </Grid>
 
     </Grid>
+    </Viewbox>
 </Page>

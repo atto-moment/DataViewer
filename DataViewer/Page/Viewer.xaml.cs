@@ -25,6 +25,11 @@ namespace DataViewer
     {
         List<Tuple<double, string, double[]>> postureDataList = new List<Tuple<double, string, double[]>>();
         List<double[]> footPressureDataList = new List<double[]>();
+        List<int> peakValueIndexes_Posture = new List<int>();
+        List<int> peakValueIndexes_FootPressure = new List<int>();
+
+        double[] feetXPositions;
+        double[] feetXAngulars;
 
         public Viewer()
         {
@@ -63,6 +68,7 @@ namespace DataViewer
                     if (clickedButton == Button_Posture)
                     {
                         postureDataList = (List<Tuple<double, string, double[]>>)FileOperation.ReadAllFrames(filePath, extension);
+                        feetXPositions = FileOperation.GetFeetXPositions(postureDataList);
                         isCorrectFormat = (postureDataList[0].Item3.Length == Constant.DIMENTIONS_POSTURE - 2) && (postureDataList.Count % Constant.BODYPARTS_POSTURE == 0);
                         frameCount = postureDataList.Count / Constant.BODYPARTS_POSTURE;
                         frameRate = (int)Math.Round(1 / (postureDataList[Constant.BODYPARTS_POSTURE].Item1 - postureDataList[0].Item1));
@@ -70,6 +76,7 @@ namespace DataViewer
                     else if (clickedButton == Button_FootPressure)
                     {
                         footPressureDataList = (List<double[]>)FileOperation.ReadAllFrames(filePath, extension);
+                        feetXAngulars = FileOperation.GetFeetXAngulars(footPressureDataList);
                         isCorrectFormat = footPressureDataList[0].Length == Constant.DIMENTIONS_FOOTPRESSURE;
                         frameCount = footPressureDataList.Count;
                         frameRate = (int)Math.Round(1 / (footPressureDataList[1][0] - footPressureDataList[0][0]));
@@ -134,11 +141,11 @@ namespace DataViewer
         }
 
         /// <summary>
-        /// Set frame offsets
+        /// Change frame offsets
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SetOffset(object sender, RoutedEventArgs e)
+        private void ChangeOffset(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
             string dataName = clickedButton.Name.Split("_")[1];
@@ -187,10 +194,6 @@ namespace DataViewer
         private void Export(object sender, RoutedEventArgs e)
         {
             Button clickedButton = sender as Button;
-            bool isLeftTurn = false;
-            double xPosition = 0;
-            double previousXPosition;
-            List<int> TurnIndexList = new List<int>();
             int offset;
             int maximumFrame;
             string path;
@@ -218,39 +221,11 @@ namespace DataViewer
                     }
                     else if (clickedButton.Name == "Extract")
                     {
-                        double peakXPosition = 0;
-                        int index = offset;
-                        double displacement = 0;
-                        for (int i = offset; i < maximumFrame; i++)
+                        if (peakValueIndexes_Posture.Count == 0)
                         {
-                            previousXPosition = xPosition;
-                            xPosition = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0] + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
-                            if (i < offset + 4)
-                            {
-                                displacement = displacement + (xPosition - previousXPosition);
-                            }
-                            else if (i == offset + 4)
-                            {
-                                isLeftTurn = displacement > 0;
-                            }
-                            else 
-                            {
-                                peakXPosition = isLeftTurn ? Math.Max(xPosition, peakXPosition) : Math.Min(xPosition, peakXPosition);
-                                if (peakXPosition == xPosition)
-                                {
-                                    index = i;
-                                }
-                                else
-                                {
-                                    if (Math.Abs(peakXPosition - xPosition) > 0.3)
-                                    {
-                                        isLeftTurn = !isLeftTurn;
-                                        TurnIndexList.Add(index);
-                                    }
-                                }
-                            }
+                            peakValueIndexes_Posture = FileOperation.GetPeakValueIndexes(feetXPositions, offset, maximumFrame, 0.3);
                         }
-                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", postureDataList, 0, maximumFrame);
+                        FileOperation.WriteCSVFile(peakValueIndexes_Posture, path + "_Turn_", postureDataList, 0, maximumFrame);
                     }
 
                 }
@@ -266,7 +241,7 @@ namespace DataViewer
                     }
                     else if (clickedButton.Name == "Extract")
                     {
-                        FileOperation.WriteCSVFile(TurnIndexList, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text) - int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_FootPressure.Text), double.Parse(FrameRateRatio.Text));
+                        FileOperation.WriteCSVFile(peakValueIndexes_Posture, path + "_Turn_", footPressureDataList, int.Parse(FrameOffset_FootPressure.Text) - int.Parse(FrameOffset_Posture.Text), int.Parse(FrameCount_FootPressure.Text), double.Parse(FrameRateRatio.Text));
                     }
                 }
             }
@@ -288,15 +263,12 @@ namespace DataViewer
 
             if (sliderValue + frameOffset_Posture < frameCount_Posture)
             {
-                double feetXPosition;
+                double feetXPosition = feetXPositions[sliderValue - 1];
                 List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
 
                 DataDisplay.InitializePlotView(ref helixView);
-                DataDisplay.CreateStickFigure(ref helixView, postureDataList, frameOffset_Posture, sliderValue, Colors.Blue, out pointList);
-                DataDisplay.CreateAngleLabels(ref helixView, pointList);
-                DataDisplay.CreateJointPoints(ref helixView, pointList);
+                DataDisplay.CreateStickFigure(ref helixView, postureDataList, frameOffset_Posture, sliderValue, Colors.Blue);
 
-                feetXPosition = (pointList[Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item2.X + pointList[Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item2.X) / 2.0;
                 Right_Position.Value = Math.Max(feetXPosition, 0);
                 Left_Position.Value = Math.Max(-feetXPosition, 0);
                 ChangeBackgroundColor("Position");
@@ -428,6 +400,11 @@ namespace DataViewer
             }
         }
 
+        /// <summary>
+        /// Read offset settings from a DAT file 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ReadOffsetFile(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -454,114 +431,51 @@ namespace DataViewer
             }
 
         }
+
+        /// <summary>
+        /// Set frame offsets automatically
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SetFrameOffset(object sender, RoutedEventArgs e)
         {
-            int offset = 2425;
-            int maximumFrame = 6040;
-            double[] x = new double[postureDataList.Count / Constant.BODYPARTS_POSTURE];
-            double[] y = new double[postureDataList.Count / Constant.BODYPARTS_POSTURE];
-            double previousX;
-            double peakX = 0;
-            int index = offset;
-            double displacement = 0;
-            bool isLeftTurn = false;
-            List<int> TurnIndexList = new List<int>();
-            List<int> TurnIndexList2 = new List<int>();
+            int offset = (int)Math.Round(double.Parse(FrameOffset_Minimum.Text)) - 1;
+            int maximumFrame = (int)Math.Round(double.Parse(FrameOffset_Maximum.Text)) - 1;
+            peakValueIndexes_Posture = FileOperation.GetPeakValueIndexes(feetXPositions, offset, maximumFrame, 0.3);
+            peakValueIndexes_FootPressure = FileOperation.GetPeakValueIndexes(feetXAngulars, (int)Math.Round(offset * double.Parse(FrameRateRatio.Text)), (int)Math.Round(maximumFrame * double.Parse(FrameRateRatio.Text)), 60, true);
 
-
-            for (int i = 0; i < postureDataList.Count / Constant.BODYPARTS_POSTURE; i++)
-            {
-                x[i] = (postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "l_foot")].Item3[0]
-                    + postureDataList[i * Constant.BODYPARTS_POSTURE + Array.IndexOf(Constant.JOINTNAMES, "r_foot")].Item3[0]) / 2.0;
-
-                if (Math.Round(i * double.Parse(FrameRateRatio.Text)) < footPressureDataList.Count){
-                    y[i] = (footPressureDataList[(int)Math.Round(i * double.Parse(FrameRateRatio.Text))][Array.IndexOf(Constant.HEADER_FOOTPRESSURE, "left angular X[dps]")]
-                        - footPressureDataList[(int)Math.Round(i * double.Parse(FrameRateRatio.Text))][Array.IndexOf(Constant.HEADER_FOOTPRESSURE, "right angular X[dps]")]) / 2.0;
-                }
-            }
-
-            for (int i = offset; i < maximumFrame; i++)
-            {
-                previousX = x[i - 1];
-                if (i < offset + 4)
-                {
-                    displacement = displacement + (x[i] - previousX);
-                }
-                else if (i == offset + 4)
-                {
-                    isLeftTurn = displacement > 0;
-                }
-                else
-                {
-                    peakX = isLeftTurn ? Math.Max(x[i], peakX) : Math.Min(x[i], peakX);
-                    if (peakX == x[i])
-                    {
-                        index = i;
-                    }
-                    else
-                    {
-                        if (Math.Abs(peakX - x[i]) > 0.3)
-                        {
-                            isLeftTurn = !isLeftTurn;
-                            TurnIndexList.Add(index);
-                        }
-                    }
-                }
-            }
-
-            offset = (int)Math.Round(offset * double.Parse(FrameRateRatio.Text));
-            maximumFrame = (int)Math.Round(maximumFrame * double.Parse(FrameRateRatio.Text));
-            index = offset;
-
-            for (int i = offset; i < maximumFrame; i++)
-            {
-                previousX = y[i - 1];
-                if (i < offset + 4)
-                {
-                    displacement = displacement + (y[i] - previousX);
-                }
-                else if (i == offset + 4)
-                {
-                    isLeftTurn = displacement > 0;
-                }
-                else
-                {
-                    peakX = isLeftTurn ? Math.Min(y[i], peakX) : Math.Max(y[i], peakX);
-                    if (peakX == y[i])
-                    {
-                        index = i;
-                    }
-                    else
-                    {
-                        if (Math.Abs(peakX - y[i]) > 40)
-                        {
-                            isLeftTurn = !isLeftTurn;
-                            TurnIndexList2.Add(index);
-                        }
-                    }
-                }
-            }
-
-            int[] a = TurnIndexList.Select((item) => item - TurnIndexList[0]).ToArray();
-            int[] b = TurnIndexList2.Select((item) => item - TurnIndexList2[0]).ToArray();
-            double[] c = new double[10];
-            double[] d = new double[10];
+            int length = Math.Min(peakValueIndexes_Posture.Count, peakValueIndexes_FootPressure.Count) / 2;
+            double[] c = new double[length];
+            double[] d = new double[length];
             Array.Fill(c, 0);
             Array.Fill(d, 0);
-            for(int i = 0; i < 10; i++)
+
+            for(int i = 0; i < length; i++)
             {
-                for (int j = 0; j < 30; j++)
+                for (int j = 0; j < length; j++)
                 {
-                    c[i] = c[i] + Math.Pow(a[j] - b[j + i], 2);
+                    c[i] = c[i] + Math.Pow((peakValueIndexes_Posture[j + 1] - peakValueIndexes_Posture[j]) - (peakValueIndexes_FootPressure[j + i + 1] - peakValueIndexes_FootPressure[j + i]) / double.Parse(FrameRateRatio.Text), 2);
                 }
             }
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < length; i++)
             {
-                for (int j = 0; j < 30; j++)
+                for (int j = 0; j < length; j++)
                 {
-                    d[i] = d[i] + Math.Pow(a[j + i] - b[j], 2);
+                    d[i] = d[i] + Math.Pow((peakValueIndexes_Posture[j + i + 1] - peakValueIndexes_Posture[j + i]) - (peakValueIndexes_FootPressure[j + 1] - peakValueIndexes_FootPressure[j]) / double.Parse(FrameRateRatio.Text), 2);
                 }
             }
+
+            Dictionary<int, double> sorted = c.Select((value, index) => new KeyValuePair<int, double>(index, value)).OrderBy(item => item.Value).ToDictionary();
+            Dictionary<int, double> sorted2 = d.Select((value, index) => new KeyValuePair<int, double>(index, value)).OrderBy(item => item.Value).ToDictionary();
+            int index;
+            //if(sorted.First().Value < sorted2.First().Value)
+            //{
+            //    index = sorted.First().Key;
+            //}
+            //else
+            //{
+            //    index = sorted2.First().Key;
+            //}
         }
     }
 }

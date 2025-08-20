@@ -35,6 +35,53 @@ namespace DataViewer
         /// <param name="color"></param>
         /// <param name="pointList"></param>
         /// <param name="isSimplified"></param>
+        public static void CreateStickFigure(ref HelixViewport3D helixView, List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, Color color, bool isSimplified = false)
+        {
+            Tuple<double, string, double[]> data;
+            Point3D previousPoint;
+            MeshBuilder meshBuilder = new MeshBuilder();
+            List<Tuple<string, Point3D>> pointList = new List<Tuple<string, Point3D>>();
+            for (int i = 0; i < Constant.BODYPARTS_POSTURE; i++)
+            {
+                data = dataList[(offset + sliderValue - 1) * Constant.BODYPARTS_POSTURE + i];
+                pointList.Add(new Tuple<string, Point3D>(data.Item2, new Point3D(data.Item3[0], data.Item3[1], data.Item3[2])));
+                if (!isSimplified || Constant.JOINTNAMES_SIMPLE.Contains(Constant.JOINTNAMES[i]))
+                {
+                    if (pointList[i].Item1 != "pelvis")
+                    {
+                        if (pointList[i - 1].Item1.Contains("end:"))
+                        {
+                            previousPoint = pointList[Array.IndexOf(Constant.JOINTNAMES, pointList[i - 1].Item1.Split(":")[1])].Item2;
+                        }
+                        else
+                        {
+                            previousPoint = pointList[i - 1].Item2;
+                        }
+                        meshBuilder.AddCylinder(previousPoint, pointList[i].Item2, 0.02);
+                    }
+                }
+            }
+            helixView.Children.Add(new ModelVisual3D
+            {
+                Content = new GeometryModel3D(
+                    meshBuilder.ToMesh(),
+                    new DiffuseMaterial(new SolidColorBrush(color)))
+            });
+
+            DataDisplay.CreateAngleLabels(ref helixView, pointList);
+            DataDisplay.CreateJointPoints(ref helixView, pointList);
+        }
+
+        /// <summary>
+        /// Create a stick figure
+        /// </summary>
+        /// <param name="helixView"></param>
+        /// <param name="dataList"></param>
+        /// <param name="offset"></param>
+        /// <param name="sliderValue"></param>
+        /// <param name="color"></param>
+        /// <param name="pointList"></param>
+        /// <param name="isSimplified"></param>
         public static void CreateStickFigure(ref HelixViewport3D helixView, List<Tuple<double, string, double[]>> dataList, int offset, int sliderValue, Color color, out List<Tuple<string, Point3D>> pointList, bool isSimplified = false)
         {
             Tuple<double, string, double[]> data;

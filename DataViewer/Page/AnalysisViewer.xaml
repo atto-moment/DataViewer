@@ -7,369 +7,370 @@
       mc:Ignorable="d" 
       d:DesignHeight="1020" d:DesignWidth="1920"
       Title="AnalysisViewer">
-
-    <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Height="1020" Width="1920">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="0.9*"/>
-            <RowDefinition Height="6*"/>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="0.9*"/>
-            <RowDefinition Height="1.2*"/>
-        </Grid.RowDefinitions>
-
-        <Grid x:Name="Picker" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*"/>
-                <ColumnDefinition Width="1.25*"/>
-                <ColumnDefinition Width="1.25*"/>
-                <ColumnDefinition Width="1.5*"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
+    <Viewbox>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Height="1020" Width="1920">
             <Grid.RowDefinitions>
+                <RowDefinition Height="0.9*"/>
+                <RowDefinition Height="6*"/>
                 <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
+                <RowDefinition Height="0.9*"/>
+                <RowDefinition Height="1.2*"/>
             </Grid.RowDefinitions>
 
-            <!--Folder Picker-->
-            <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="0">
-                <Label Content="Data Path" Width="110"/>
-                <Label Content=":"/>
-                <TextBox x:Name="FolderPath" Margin="10,0" Height="30" Width="400" IsEnabled="False"/>
-                <Button Height="30" Width="80" Content="Open" Click="OpenFiles"/>
-            </StackPanel>
-        </Grid>
-
-        <Grid x:Name="DataViewer" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-            </Grid.ColumnDefinitions>
-
-            <!--3D Plotter-->
-            <Grid Background="DarkGray" Height="600" Width="920" Grid.Column="0">
+            <Grid x:Name="Picker" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="9.5*"/>
-                    <ColumnDefinition Width="0.5*"/>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="1.25*"/>
+                    <ColumnDefinition Width="1.25*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+
+                <!--Folder Picker-->
+                <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Grid.Row="0" Grid.Column="0">
+                    <Label Content="Data Path" Width="110"/>
+                    <Label Content=":"/>
+                    <TextBox x:Name="FolderPath" Margin="10,0" Height="30" Width="400" IsEnabled="False"/>
+                    <Button Height="30" Width="80" Content="Open" Click="OpenFiles"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid x:Name="DataViewer" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <ht:HelixViewport3D x:Name="helixView" ZoomExtentsWhenLoaded="True" ShowCameraInfo="True"  Grid.Column="0">
-                    <ht:HelixViewport3D.Camera>
-                        <PerspectiveCamera Position="-0 -20 0.5"
+                <!--3D Plotter-->
+                <Grid Background="DarkGray" Height="600" Width="920" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="9.5*"/>
+                        <ColumnDefinition Width="0.5*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ht:HelixViewport3D x:Name="helixView" ZoomExtentsWhenLoaded="True" ShowCameraInfo="True"  Grid.Column="0">
+                        <ht:HelixViewport3D.Camera>
+                            <PerspectiveCamera Position="-0 -20 0.5"
                            LookDirection="0 30 0"
                            UpDirection="0 0 1"
                            NearPlaneDistance="0.125"
                            FieldOfView="45"/>
-                    </ht:HelixViewport3D.Camera>
-                </ht:HelixViewport3D>
+                        </ht:HelixViewport3D.Camera>
+                    </ht:HelixViewport3D>
 
-                <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
-                    <Label Content="MPJPE [mm]:" Foreground="Black"/>
-                    <Label Name="MPJPE" Content="0" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
-                    <Label Content="Unstable Joints (Worst 5):" Foreground="Black"/>
-                </StackPanel>
-
-                <Grid Height="600" Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.5*"/>
-                        <RowDefinition Height="9.5*"/>
-                    </Grid.RowDefinitions>
-
-                    <Label Content="Pos." Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
-                    <StackPanel Orientation="Horizontal" Grid.Row="1">
-                        <ProgressBar x:Name="Left_Position" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="2">
-                            <ProgressBar.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform Angle="-90"/>
-                                    <TranslateTransform X="-265"/>
-                                </TransformGroup>
-                            </ProgressBar.RenderTransform>
-                        </ProgressBar>
-
-                        <ProgressBar x:Name="Right_Position" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="2">
-                            <ProgressBar.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform Angle="-90"/>
-                                    <TranslateTransform X="-810"/>
-                                </TransformGroup>
-                            </ProgressBar.RenderTransform>
-                        </ProgressBar>
+                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
+                        <Label Content="MPJPE [mm]:" Foreground="Black"/>
+                        <Label Name="MPJPE" Content="0" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
+                        <Label Content="Unstable Joints (Worst 5):" Foreground="Black"/>
                     </StackPanel>
+
+                    <Grid Height="600" Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="0.5*"/>
+                            <RowDefinition Height="9.5*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Content="Pos." Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1">
+                            <ProgressBar x:Name="Left_Position" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="2">
+                                <ProgressBar.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="-90"/>
+                                        <TranslateTransform X="-265"/>
+                                    </TransformGroup>
+                                </ProgressBar.RenderTransform>
+                            </ProgressBar>
+
+                            <ProgressBar x:Name="Right_Position" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="2">
+                                <ProgressBar.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="-90"/>
+                                        <TranslateTransform X="-810"/>
+                                    </TransformGroup>
+                                </ProgressBar.RenderTransform>
+                            </ProgressBar>
+                        </StackPanel>
+                    </Grid>
+
                 </Grid>
 
+                <!--Foot Pressure-->
+                <Grid Background="DarkGray" Height="600" Width="920" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.5*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="0.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Height="600" Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="0.5*"/>
+                            <RowDefinition Height="9.5*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Content="Angle" Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1">
+                            <ProgressBar x:Name="Left_Angular" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="-180" Maximum="180">
+                                <ProgressBar.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="-90"/>
+                                        <TranslateTransform X="-265"/>
+                                    </TransformGroup>
+                                </ProgressBar.RenderTransform>
+                            </ProgressBar>
+
+                            <ProgressBar x:Name="Right_Angular" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="-180" Maximum="180">
+                                <ProgressBar.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="-90"/>
+                                        <TranslateTransform X="-810"/>
+                                    </TransformGroup>
+                                </ProgressBar.RenderTransform>
+                            </ProgressBar>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Height="600" Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="6*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
+                            <Label Content="Total Force (Left) [N]:" Foreground="Black"/>
+                            <Label Content ="{Binding ElementName=Left_Pressure, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="1">
+                            <Label Content="Angular X (Left) [dps]:" Foreground="Black"/>
+                            <Label Content ="{Binding ElementName=Left_Angular, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="2">
+                            <Label Content="Pressure Values (Left) [N/cm2]:" Foreground="Black"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Height="600" Grid.Column="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="6*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
+                            <Label Content="Total Force (Right) [N]:" Foreground="Black"/>
+                            <Label Content ="{Binding ElementName=Right_Pressure, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="1">
+                            <Label Content="Angular X (Right) [dps]:" Foreground="Black"/>
+                            <Label Content ="{Binding ElementName=Right_Angular, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="2">
+                            <Label Content="Pressure Values (Right) [N/cm2]:" Foreground="Black"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Height="600" Grid.Column="2">
+                        <Path Stroke="Black" StrokeThickness="5" Data="M 150,10 C 40,5 10,220 10,250 C 10,290 25,310 25,440 C 25,500 10,580 90,590 C 170,590 160,500 155,440 C 150,370 160,340 170,300 C 200,210 210,225 215,150 C 215,75 210,20 150,10"/>
+                        <Path x:Name="Left_1"  Stroke="Black" Fill="White" Data="M 150,495 C 150,560 130,575 95,580 L 95,500 C 95,500 125,495 150,495 Z"/>
+                        <Path x:Name="Left_2" Stroke="Black" Fill="White" Data="M 30,510 C 35,560 55,575 90,580 L 90,500 C 85,500 50,505 30,510 Z"/>
+                        <Path x:Name="Left_3" Stroke="Black" Fill="White" Data="M 95,420 L 95,495 C 130,490 140,490 150,490 C 150,450 145,440 145,415 C 140,415 120,415 95,420 Z"/>
+                        <Path x:Name="Left_4" Stroke="Black" Fill="White" Data="M 30,430 C 32.5,450 27.5,480 30,505 C 50,500 85,495 90,495 L 90,420 C 80,420 50,425 30,430 Z"/>
+                        <Path x:Name="Left_5" Stroke="Black" Fill="White" Data="M 95,340 L 95,415 C 110,412.5 130,410 145,410 C 147.5,350 150,350 152.5,335 C 140,335 120,335 95,340 Z"/>
+                        <Path x:Name="Left_6" Stroke="Black" Fill="White" Data="M 27.5,355 C 30,380 30,400 30,425 C 50,420 80,415 90,415 L 90,340 C 80,340 40,350 27.5,355 Z"/>
+                        <Path x:Name="Left_7" Stroke="Black" Fill="White" Data="M 95,230 L 95,335 C 120,330 140,330 155,330 C 160,300 175,260 192.5,220 C 170,220 150,227.5 95,230 Z"/>
+                        <Path x:Name="Left_8" Stroke="Black" Fill="White" Data="M 17.5,255 C 15,260 27.5,320 27.5,350 C 40,345 80,335 90,335 L 90,230 C 60,235 35,250 17.5,255 Z"/>
+                        <Path x:Name="Left_9" Stroke="Black" Fill="White" Data="M 165,105 L 165,217.5 C 165,217.5 185,215 195,215 C 210,185 210,140 207.5,102.5 C 185,100 175,102.5 165,105 Z"/>
+                        <Path x:Name="Left_10" Stroke="Black" Fill="White" Data="M 130,105 L 130,222.5 C 137.5,222.5 145,220 160,217.5 L 160,105 C 155,105 150,102.5 130,105 Z"/>
+                        <Path x:Name="Left_11" Stroke="Black" Fill="White" Data="M 95,110 L 95,225 C 110,225 120,222.5 125,222.5 L 125,105 C 115,105 100,110 95,110 Z"/>
+                        <Path x:Name="Left_12" Stroke="Black" Fill="White" Data="M 55,120 L 55,235 C 65,230 80,227.5 90,225 L 90,110 C 75,110 65,120 55,120 Z"/>
+                        <Path x:Name="Left_13" Stroke="Black" Fill="White" Data="M 45,120 C 27.5,175 20,200 17.5,250 C 22.5,250 40,240 50,237.5 L 50,120 L 45,120 Z"/>
+                        <Path x:Name="Left_14" Stroke="Black" Fill="White" Data="M 155,20 L 155,100 C 170,100 180,95 207.5,97.5 C 200,20 160,20 155,20 Z"/>
+                        <Path x:Name="Left_15" Stroke="Black" Fill="White" Data="M 100,35 L 100,105 C 120,100 145,100 150,100 L 150,20 C 130,15 105,30 100,35 Z"/>
+                        <Path x:Name="Left_16" Stroke="Black" Fill="White" Data="M 95,37.5 C 65,65 50,105 45,117.5 C 65,117.5 75,105 95,105 L 95,37.5 Z"/>
+                        <Label x:Name="Left_1_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,515,0,0"/>
+                        <Label x:Name="Left_2_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="45,520,0,0"/>
+                        <Label x:Name="Left_3_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,440,0,0"/>
+                        <Label x:Name="Left_4_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="45,445,0,0"/>
+                        <Label x:Name="Left_5_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,360,0,0"/>
+                        <Label x:Name="Left_6_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="45,365,0,0"/>
+                        <Label x:Name="Left_7_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="110,270,0,0"/>
+                        <Label x:Name="Left_8_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="40,275,0,0"/>
+                        <Label x:Name="Left_9_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="170,145,0,0"/>
+                        <Label x:Name="Left_10_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="135,150,0,0"/>
+                        <Label x:Name="Left_11_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="100,160,0,0"/>
+                        <Label x:Name="Left_12_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="60,175,0,0"/>
+                        <Label x:Name="Left_13_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="25,195,0,0"/>
+                        <Label x:Name="Left_14_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="160,50,0,0"/>
+                        <Label x:Name="Left_15_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,60,0,0"/>
+                        <Label x:Name="Left_16_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="65,80,0,0"/>
+                        <Ellipse x:Name="Left_COP" Fill="Yellow" Height="10" Width="10"  Stroke="Black" Margin="-45,0,0,0"/>
+                    </Grid>
+
+                    <Grid Height="600" Grid.Column="4">
+                        <!--230 - x -->
+                        <Path Stroke="Black" StrokeThickness="5" 
+                          Data="M 80,10 C 190,5 220,220 220,250 C 220,290 205,310 205,440 C 205,500 220,580 140,590 C 60,590 70,500 75,440 C 80,370 70,340 60,300 C 30,210 20,225 15,150 C 15,75 20,20 80,10"/>
+                        <Path x:Name="Right_1" Stroke="Black" Fill="White" Data="M 80,495 C 80,560 100,575 135,580 L 135,500 C 135,500 105,495 80,495 Z"/>
+                        <Path x:Name="Right_2" Stroke="Black" Fill="White" Data="M 200,510 C 195,560 175,575 140,580 L 140,500 C 145,500 180,505 200,510 Z"/>
+                        <Path x:Name="Right_3" Stroke="Black" Fill="White" Data="M 135,420 L 135,495 C 100,490 90,490 80,490 C 80,450 85,440 85,415 C 90,415 110,415 135,420 Z"/>
+                        <Path x:Name="Right_4" Stroke="Black" Fill="White" Data="M 200,430 C 197.5,450 202.5,480 200,505 C 180,500 145,495 140,495 L 140,420 C 150,420 180,425 200,430 Z"/>
+                        <Path x:Name="Right_5" Stroke="Black" Fill="White" Data="M 135,340 L 135,415 C 120,412.5 100,410 85,410 C 82.5,350 80,350 77.5,335 C 90,335 110,335 135,340 Z"/>
+                        <Path x:Name="Right_6" Stroke="Black" Fill="White" Data="M 202.5,355 C 200,380 200,400 200,425 C 180,420 150,415 140,415 L 140,340 C 150,340 190,350 202.5,355 Z"/>
+                        <Path x:Name="Right_7" Stroke="Black" Fill="White" Data="M 135,230 L 135,335 C 110,330 90,330 75,330 C 70,300 55,260 37.5,220 C 60,220 80,227.5 135,230 Z"/>
+                        <Path x:Name="Right_8" Stroke="Black" Fill="White" Data="M 212.5,255 C 215,260 202.5,320 202.5,350 C 190,345 150,335 140,335 L 140,230 C 170,235 195,250 212.5,255 Z"/>
+                        <Path x:Name="Right_9" Stroke="Black" Fill="White" Data="M 65,105 L 65,217.5 C 65,217.5 45,215 35,215 C 20,185 20,140 22.5,102.5 C 45,100 55,102.5 65,105 Z"/>
+                        <Path x:Name="Right_10" Stroke="Black" Fill="White" Data="M 100,105 L 100,222.5 C 92.5,222.5 85,220 70,217.5 L 70,105 C 75,105 80,102.5 100,105 Z"/>
+                        <Path x:Name="Right_11" Stroke="Black" Fill="White" Data="M 135,110 L 135,225 C 120,225 110,222.5 105,222.5 L 105,105 C 115,105 130,110 135,110 Z"/>
+                        <Path x:Name="Right_12" Stroke="Black" Fill="White" Data="M 175,120 L 175,235 C 165,230 150,227.5 140,225 L 140,110 C 155,110 165,120 175,120 Z"/>
+                        <Path x:Name="Right_13" Stroke="Black" Fill="White" Data="M 185,120 C 202.5,175 210,200 212.5,250 C 207.5,250 190,240 180,237.5 L 180,120 L 185,120 Z"/>
+                        <Path x:Name="Right_14" Stroke="Black" Fill="White" Data="M 75,20 L 75,100 C 60,100 50,95 22.5,97.5 C 30,20 70,20 75,20 Z"/>
+                        <Path x:Name="Right_15" Stroke="Black" Fill="White" Data="M 130,35 L 130,105 C 110,100 85,100 80,100 L 80,20 C 100,15 125,30 130,35 Z"/>
+                        <Path x:Name="Right_16" Stroke="Black" Fill="White" Data="M 135,37.5 C 165,65 180,105 185,117.5 C 165,117.5 155,105 135,105 L 135,37.5 Z"/>
+                        <Label x:Name="Right_1_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="90,515,0,0"/>
+                        <Label x:Name="Right_2_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,520,0,0"/>
+                        <Label x:Name="Right_3_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="90,440,0,0"/>
+                        <Label x:Name="Right_4_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,445,0,0"/>
+                        <Label x:Name="Right_5_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="90,360,0,0"/>
+                        <Label x:Name="Right_6_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,365,0,0"/>
+                        <Label x:Name="Right_7_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="85,270,0,0"/>
+                        <Label x:Name="Right_8_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,275,0,0"/>
+                        <Label x:Name="Right_9_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="30,145,0,0"/>
+                        <Label x:Name="Right_10_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="75,150,0,0"/>
+                        <Label x:Name="Right_11_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="110,160,0,0"/>
+                        <Label x:Name="Right_12_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="145,175,0,0"/>
+                        <Label x:Name="Right_13_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="185,195,0,0"/>
+                        <Label x:Name="Right_14_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="35,50,0,0"/>
+                        <Label x:Name="Right_15_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="85,60,0,0"/>
+                        <Label x:Name="Right_16_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="140,80,0,0"/>
+                        <Ellipse x:Name="Right_COP" Fill="Yellow" Height="10" Width="10"  Stroke="Black" Margin="45,0,0,0"/>
+                    </Grid>
+
+                    <Grid Height="600" Grid.Column="3">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="0.5*"/>
+                            <RowDefinition Height="9.5*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Content="Press." Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1">
+                            <ProgressBar x:Name="Left_Pressure" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="1000">
+                                <ProgressBar.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="-90"/>
+                                        <TranslateTransform X="-265"/>
+                                    </TransformGroup>
+                                </ProgressBar.RenderTransform>
+                            </ProgressBar>
+
+                            <ProgressBar x:Name="Right_Pressure" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="1000">
+                                <ProgressBar.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="-90"/>
+                                        <TranslateTransform X="-810"/>
+                                    </TransformGroup>
+                                </ProgressBar.RenderTransform>
+                            </ProgressBar>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
             </Grid>
 
-            <!--Foot Pressure-->
-            <Grid Background="DarkGray" Height="600" Width="920" Grid.Column="1">
+            <Grid x:Name="Player" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.5*"/>
+                    <ColumnDefinition Width="2.5*"/>
                     <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="2.5*"/>
-                    <ColumnDefinition Width="0.5*"/>
-                    <ColumnDefinition Width="2.5*"/>
+                    <ColumnDefinition Width="3.5*"/>
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
 
-                <Grid Height="600" Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.5*"/>
-                        <RowDefinition Height="9.5*"/>
-                    </Grid.RowDefinitions>
+                <!--Player-->
+                <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <RadioButton x:Name="LeftTurn" Margin="20,0,0,0" Content="Left Turn" IsChecked="True" Checked="RadioButtonChecked"/>
+                    <RadioButton x:Name="RightTurn" Margin="30,0,0,0" Content="Right Turn" Checked="RadioButtonChecked"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="2">
+                    <Label Content="Threshold" Margin="20,0,0,0" Width="75"/>
+                    <Label Content=":"/>
+                    <Label Content="(Pos.)" Margin="10,0,0,0" Width="50"/>
+                    <Label Content="0. " VerticalAlignment="Center"/>
+                    <TextBox x:Name="Threshold_Position" Height="30" Width="75" Text ="5" TextChanged="NumericTextChanged"/>
+                    <Label Content="(Angle)" Margin="10,0,0,0" Width="50"/>
+                    <TextBox x:Name="Threshold_Angular" Height="30" Width="75" Text ="90" TextChanged="NumericTextChanged"/>
+                    <Label Content="(Press.)" Margin="10,0,0,0" Width="50"/>
+                    <TextBox x:Name="Threshold_Pressure" Height="30" Width="75" Text ="500" TextChanged="NumericTextChanged"/>
+                </StackPanel>
+            </Grid>
 
-                    <Label Content="Angle" Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
-                    <StackPanel Orientation="Horizontal" Grid.Row="1">
-                        <ProgressBar x:Name="Left_Angular" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="-180" Maximum="180">
-                            <ProgressBar.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform Angle="-90"/>
-                                    <TranslateTransform X="-265"/>
-                                </TransformGroup>
-                            </ProgressBar.RenderTransform>
-                        </ProgressBar>
 
-                        <ProgressBar x:Name="Right_Angular" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="-180" Maximum="180">
-                            <ProgressBar.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform Angle="-90"/>
-                                    <TranslateTransform X="-810"/>
-                                </TransformGroup>
-                            </ProgressBar.RenderTransform>
-                        </ProgressBar>
-                    </StackPanel>
-                </Grid>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="7*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
 
-                <Grid Height="600" Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="6*"/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
-                        <Label Content="Total Force (Left) [N]:" Foreground="Black"/>
-                        <Label Content ="{Binding ElementName=Left_Pressure, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="1">
-                        <Label Content="Angular X (Left) [dps]:" Foreground="Black"/>
-                        <Label Content ="{Binding ElementName=Left_Angular, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="2">
-                        <Label Content="Pressure Values (Left) [N/cm2]:" Foreground="Black"/>
-                    </StackPanel>
-                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row ="1" Grid.Column="0">
+                    <Button x:Name="Export_CSV" Height="30" Width="90" Content="Export .csv" Click="Export"/>
+                    <Button x:Name="Export_PNG" Margin="20,0,0,0" Height="30" Width="90" Content="Export .png" Click="Export"/>
+                </StackPanel>
+            </Grid>
 
-                <Grid Height="600" Grid.Column="5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="6*"/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="0">
-                        <Label Content="Total Force (Right) [N]:" Foreground="Black"/>
-                        <Label Content ="{Binding ElementName=Right_Pressure, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="1">
-                        <Label Content="Angular X (Right) [dps]:" Foreground="Black"/>
-                        <Label Content ="{Binding ElementName=Right_Angular, Path=Value}" ContentStringFormat="{}{0:0.0}" Foreground="Black"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Vertical" Margin="10,0,0,0" Grid.Row="2">
-                        <Label Content="Pressure Values (Right) [N/cm2]:" Foreground="Black"/>
-                    </StackPanel>
-                </Grid>
+            <Grid x:Name="PageTab" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="8*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
 
-                <Grid Height="600" Grid.Column="2">
-                    <Path Stroke="Black" StrokeThickness="5" Data="M 150,10 C 40,5 10,220 10,250 C 10,290 25,310 25,440 C 25,500 10,580 90,590 C 170,590 160,500 155,440 C 150,370 160,340 170,300 C 200,210 210,225 215,150 C 215,75 210,20 150,10"/>
-                    <Path x:Name="Left_1"  Stroke="Black" Fill="White" Data="M 150,495 C 150,560 130,575 95,580 L 95,500 C 95,500 125,495 150,495 Z"/>
-                    <Path x:Name="Left_2" Stroke="Black" Fill="White" Data="M 30,510 C 35,560 55,575 90,580 L 90,500 C 85,500 50,505 30,510 Z"/>
-                    <Path x:Name="Left_3" Stroke="Black" Fill="White" Data="M 95,420 L 95,495 C 130,490 140,490 150,490 C 150,450 145,440 145,415 C 140,415 120,415 95,420 Z"/>
-                    <Path x:Name="Left_4" Stroke="Black" Fill="White" Data="M 30,430 C 32.5,450 27.5,480 30,505 C 50,500 85,495 90,495 L 90,420 C 80,420 50,425 30,430 Z"/>
-                    <Path x:Name="Left_5" Stroke="Black" Fill="White" Data="M 95,340 L 95,415 C 110,412.5 130,410 145,410 C 147.5,350 150,350 152.5,335 C 140,335 120,335 95,340 Z"/>
-                    <Path x:Name="Left_6" Stroke="Black" Fill="White" Data="M 27.5,355 C 30,380 30,400 30,425 C 50,420 80,415 90,415 L 90,340 C 80,340 40,350 27.5,355 Z"/>
-                    <Path x:Name="Left_7" Stroke="Black" Fill="White" Data="M 95,230 L 95,335 C 120,330 140,330 155,330 C 160,300 175,260 192.5,220 C 170,220 150,227.5 95,230 Z"/>
-                    <Path x:Name="Left_8" Stroke="Black" Fill="White" Data="M 17.5,255 C 15,260 27.5,320 27.5,350 C 40,345 80,335 90,335 L 90,230 C 60,235 35,250 17.5,255 Z"/>
-                    <Path x:Name="Left_9" Stroke="Black" Fill="White" Data="M 165,105 L 165,217.5 C 165,217.5 185,215 195,215 C 210,185 210,140 207.5,102.5 C 185,100 175,102.5 165,105 Z"/>
-                    <Path x:Name="Left_10" Stroke="Black" Fill="White" Data="M 130,105 L 130,222.5 C 137.5,222.5 145,220 160,217.5 L 160,105 C 155,105 150,102.5 130,105 Z"/>
-                    <Path x:Name="Left_11" Stroke="Black" Fill="White" Data="M 95,110 L 95,225 C 110,225 120,222.5 125,222.5 L 125,105 C 115,105 100,110 95,110 Z"/>
-                    <Path x:Name="Left_12" Stroke="Black" Fill="White" Data="M 55,120 L 55,235 C 65,230 80,227.5 90,225 L 90,110 C 75,110 65,120 55,120 Z"/>
-                    <Path x:Name="Left_13" Stroke="Black" Fill="White" Data="M 45,120 C 27.5,175 20,200 17.5,250 C 22.5,250 40,240 50,237.5 L 50,120 L 45,120 Z"/>
-                    <Path x:Name="Left_14" Stroke="Black" Fill="White" Data="M 155,20 L 155,100 C 170,100 180,95 207.5,97.5 C 200,20 160,20 155,20 Z"/>
-                    <Path x:Name="Left_15" Stroke="Black" Fill="White" Data="M 100,35 L 100,105 C 120,100 145,100 150,100 L 150,20 C 130,15 105,30 100,35 Z"/>
-                    <Path x:Name="Left_16" Stroke="Black" Fill="White" Data="M 95,37.5 C 65,65 50,105 45,117.5 C 65,117.5 75,105 95,105 L 95,37.5 Z"/>
-                    <Label x:Name="Left_1_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,515,0,0"/>
-                    <Label x:Name="Left_2_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="45,520,0,0"/>
-                    <Label x:Name="Left_3_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,440,0,0"/>
-                    <Label x:Name="Left_4_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="45,445,0,0"/>
-                    <Label x:Name="Left_5_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,360,0,0"/>
-                    <Label x:Name="Left_6_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="45,365,0,0"/>
-                    <Label x:Name="Left_7_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="110,270,0,0"/>
-                    <Label x:Name="Left_8_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="40,275,0,0"/>
-                    <Label x:Name="Left_9_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="170,145,0,0"/>
-                    <Label x:Name="Left_10_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="135,150,0,0"/>
-                    <Label x:Name="Left_11_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="100,160,0,0"/>
-                    <Label x:Name="Left_12_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="60,175,0,0"/>
-                    <Label x:Name="Left_13_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="25,195,0,0"/>
-                    <Label x:Name="Left_14_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="160,50,0,0"/>
-                    <Label x:Name="Left_15_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="105,60,0,0"/>
-                    <Label x:Name="Left_16_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="65,80,0,0"/>
-                    <Ellipse x:Name="Left_COP" Fill="Yellow" Height="10" Width="10"  Stroke="Black" Margin="-45,0,0,0"/>
-                </Grid>
-
-                <Grid Height="600" Grid.Column="4">
-                    <!--230 - x -->
-                    <Path Stroke="Black" StrokeThickness="5" 
-                          Data="M 80,10 C 190,5 220,220 220,250 C 220,290 205,310 205,440 C 205,500 220,580 140,590 C 60,590 70,500 75,440 C 80,370 70,340 60,300 C 30,210 20,225 15,150 C 15,75 20,20 80,10"/>
-                    <Path x:Name="Right_1" Stroke="Black" Fill="White" Data="M 80,495 C 80,560 100,575 135,580 L 135,500 C 135,500 105,495 80,495 Z"/>
-                    <Path x:Name="Right_2" Stroke="Black" Fill="White" Data="M 200,510 C 195,560 175,575 140,580 L 140,500 C 145,500 180,505 200,510 Z"/>
-                    <Path x:Name="Right_3" Stroke="Black" Fill="White" Data="M 135,420 L 135,495 C 100,490 90,490 80,490 C 80,450 85,440 85,415 C 90,415 110,415 135,420 Z"/>
-                    <Path x:Name="Right_4" Stroke="Black" Fill="White" Data="M 200,430 C 197.5,450 202.5,480 200,505 C 180,500 145,495 140,495 L 140,420 C 150,420 180,425 200,430 Z"/>
-                    <Path x:Name="Right_5" Stroke="Black" Fill="White" Data="M 135,340 L 135,415 C 120,412.5 100,410 85,410 C 82.5,350 80,350 77.5,335 C 90,335 110,335 135,340 Z"/>
-                    <Path x:Name="Right_6" Stroke="Black" Fill="White" Data="M 202.5,355 C 200,380 200,400 200,425 C 180,420 150,415 140,415 L 140,340 C 150,340 190,350 202.5,355 Z"/>
-                    <Path x:Name="Right_7" Stroke="Black" Fill="White" Data="M 135,230 L 135,335 C 110,330 90,330 75,330 C 70,300 55,260 37.5,220 C 60,220 80,227.5 135,230 Z"/>
-                    <Path x:Name="Right_8" Stroke="Black" Fill="White" Data="M 212.5,255 C 215,260 202.5,320 202.5,350 C 190,345 150,335 140,335 L 140,230 C 170,235 195,250 212.5,255 Z"/>
-                    <Path x:Name="Right_9" Stroke="Black" Fill="White" Data="M 65,105 L 65,217.5 C 65,217.5 45,215 35,215 C 20,185 20,140 22.5,102.5 C 45,100 55,102.5 65,105 Z"/>
-                    <Path x:Name="Right_10" Stroke="Black" Fill="White" Data="M 100,105 L 100,222.5 C 92.5,222.5 85,220 70,217.5 L 70,105 C 75,105 80,102.5 100,105 Z"/>
-                    <Path x:Name="Right_11" Stroke="Black" Fill="White" Data="M 135,110 L 135,225 C 120,225 110,222.5 105,222.5 L 105,105 C 115,105 130,110 135,110 Z"/>
-                    <Path x:Name="Right_12" Stroke="Black" Fill="White" Data="M 175,120 L 175,235 C 165,230 150,227.5 140,225 L 140,110 C 155,110 165,120 175,120 Z"/>
-                    <Path x:Name="Right_13" Stroke="Black" Fill="White" Data="M 185,120 C 202.5,175 210,200 212.5,250 C 207.5,250 190,240 180,237.5 L 180,120 L 185,120 Z"/>
-                    <Path x:Name="Right_14" Stroke="Black" Fill="White" Data="M 75,20 L 75,100 C 60,100 50,95 22.5,97.5 C 30,20 70,20 75,20 Z"/>
-                    <Path x:Name="Right_15" Stroke="Black" Fill="White" Data="M 130,35 L 130,105 C 110,100 85,100 80,100 L 80,20 C 100,15 125,30 130,35 Z"/>
-                    <Path x:Name="Right_16" Stroke="Black" Fill="White" Data="M 135,37.5 C 165,65 180,105 185,117.5 C 165,117.5 155,105 135,105 L 135,37.5 Z"/>
-                    <Label x:Name="Right_1_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="90,515,0,0"/>
-                    <Label x:Name="Right_2_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,520,0,0"/>
-                    <Label x:Name="Right_3_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="90,440,0,0"/>
-                    <Label x:Name="Right_4_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,445,0,0"/>
-                    <Label x:Name="Right_5_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="90,360,0,0"/>
-                    <Label x:Name="Right_6_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,365,0,0"/>
-                    <Label x:Name="Right_7_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="85,270,0,0"/>
-                    <Label x:Name="Right_8_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="150,275,0,0"/>
-                    <Label x:Name="Right_9_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="30,145,0,0"/>
-                    <Label x:Name="Right_10_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="75,150,0,0"/>
-                    <Label x:Name="Right_11_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="110,160,0,0"/>
-                    <Label x:Name="Right_12_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="145,175,0,0"/>
-                    <Label x:Name="Right_13_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="185,195,0,0"/>
-                    <Label x:Name="Right_14_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="35,50,0,0"/>
-                    <Label x:Name="Right_15_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="85,60,0,0"/>
-                    <Label x:Name="Right_16_Label" Content="0" ContentStringFormat="{}{0:0.0}" Margin="140,80,0,0"/>
-                    <Ellipse x:Name="Right_COP" Fill="Yellow" Height="10" Width="10"  Stroke="Black" Margin="45,0,0,0"/>
-                </Grid>
-
-                <Grid Height="600" Grid.Column="3">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.5*"/>
-                        <RowDefinition Height="9.5*"/>
-                    </Grid.RowDefinitions>
-
-                    <Label Content="Press." Foreground="Black" Margin="0,5,0,0" Grid.Row="0"/>
-                    <StackPanel Orientation="Horizontal" Grid.Row="1">
-                        <ProgressBar x:Name="Left_Pressure" Background="LightGray" Foreground="Blue" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="1000">
-                            <ProgressBar.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform Angle="-90"/>
-                                    <TranslateTransform X="-265"/>
-                                </TransformGroup>
-                            </ProgressBar.RenderTransform>
-                        </ProgressBar>
-
-                        <ProgressBar x:Name="Right_Pressure" Background="LightGray" Foreground="Red" RenderTransformOrigin="0.5,0.5" Height="15" Width="560" Minimum="0" Maximum="1000">
-                            <ProgressBar.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform Angle="-90"/>
-                                    <TranslateTransform X="-810"/>
-                                </TransformGroup>
-                            </ProgressBar.RenderTransform>
-                        </ProgressBar>
-                    </StackPanel>
-                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="0">
+                    <Button x:Name="NomalView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
+                        <Image Source="/Image/NomalView.png"></Image>
+                    </Button>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="1">
+                    <Button x:Name="TurnView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
+                        <Image Source="/Image/TurnView.png"></Image>
+                    </Button>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="2">
+                    <Button x:Name="AnalysisView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Click="ChangeViewer">
+                        <Image Source="/Image/AnalysisView.png"></Image>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Grid>
-
-        <Grid x:Name="Player" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.5*"/>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="3.5*"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-            </Grid.RowDefinitions>
-
-            <!--Player-->
-            <StackPanel Orientation="Horizontal" Grid.Column="0">
-                <RadioButton x:Name="LeftTurn" Margin="20,0,0,0" Content="Left Turn" IsChecked="True" Checked="RadioButtonChecked"/>
-                <RadioButton x:Name="RightTurn" Margin="30,0,0,0" Content="Right Turn" Checked="RadioButtonChecked"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Grid.Column="2">
-                <Label Content="Threshold" Margin="20,0,0,0" Width="75"/>
-                <Label Content=":"/>
-                <Label Content="(Pos.)" Margin="10,0,0,0" Width="50"/>
-                <Label Content="0. " VerticalAlignment="Center"/>
-                <TextBox x:Name="Threshold_Position" Height="30" Width="75" Text ="5" TextChanged="NumericTextChanged"/>
-                <Label Content="(Angle)" Margin="10,0,0,0" Width="50"/>
-                <TextBox x:Name="Threshold_Angular" Height="30" Width="75" Text ="90" TextChanged="NumericTextChanged"/>
-                <Label Content="(Press.)" Margin="10,0,0,0" Width="50"/>
-                <TextBox x:Name="Threshold_Pressure" Height="30" Width="75" Text ="500" TextChanged="NumericTextChanged"/>
-            </StackPanel>
-        </Grid>
-
-
-        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="7*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*"/>
-                <RowDefinition Height="1*"/>
-            </Grid.RowDefinitions>
-
-            <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Grid.Row ="1" Grid.Column="0">
-                <Button x:Name="Export_CSV" Height="30" Width="90" Content="Export .csv" Click="Export"/>
-                <Button x:Name="Export_PNG" Margin="20,0,0,0" Height="30" Width="90" Content="Export .png" Click="Export"/>
-            </StackPanel>
-        </Grid>
-
-        <Grid x:Name="PageTab" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Width="1920" Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="8*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*"/>
-            </Grid.RowDefinitions>
-
-            <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="0">
-                <Button x:Name="NomalView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
-                    <Image Source="/Image/NomalView.png"></Image>
-                </Button>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="1">
-                <Button x:Name="TurnView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" Click="ChangeViewer">
-                    <Image Source="/Image/TurnView.png"></Image>
-                </Button>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="20,0" Grid.Row ="1" Grid.Column="2">
-                <Button x:Name="AnalysisView" Height="80" Width="152" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Click="ChangeViewer">
-                    <Image Source="/Image/AnalysisView.png"></Image>
-                </Button>
-            </StackPanel>
-        </Grid>
-    </Grid>
+    </Viewbox>
 </Page>
